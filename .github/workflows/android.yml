@@ -47,44 +47,52 @@ jobs:
 
           # 3. Inject Mobile Requirements into buildozer.spec
           # We update the 'requirements' line to include FastAPI stack
+          # We also inject android.api = 33 to ensure modern build tools
           echo "🔧 Injecting mobile requirements into buildozer.spec..."
           sed -i 's/^requirements = .*/requirements = python3,kivy,websockets,httpx,fastapi,uvicorn,pydantic,python-dotenv,plyer,typing-extensions,idna,android/' buildozer.spec
 
-          # 4. Create Bootstrap main.py
+          # Inject API version if not present or commented
+          if ! grep -q "^android.api = 33" buildozer.spec; then
+             echo "android.api = 33" >> buildozer.spec
+             echo "android.ndk_api = 21" >> buildozer.spec
+             echo "✅ Injected android.api = 33"
+          fi
+
+          # 4. Create Bootstrap main.py (Using printf to avoid heredoc issues)
           echo "🔨 Forging Kivy Bootstrap (main.py)..."
-          cat <<EOF > main.py
-          import os
-          import sys
-          import threading
-          import uvicorn
-          from kivy.app import App
-          from kivy.uix.label import Label
 
-          # Add current directory to path so src.backend can be imported
-          sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+          printf "import os\n" > main.py
+          printf "import sys\n" >> main.py
+          printf "import threading\n" >> main.py
+          printf "import uvicorn\n" >> main.py
+          printf "from kivy.app import App\n" >> main.py
+          printf "from kivy.uix.label import Label\n\n" >> main.py
 
-          # Import the backend app
-          try:
-              from src.backend.main import app as fastapi_app
-          except ImportError as e:
-              print(f"CRITICAL ERROR IMPORTING BACKEND: {e}")
-              fastapi_app = None
+          printf "# Add current directory to path so src.backend can be imported\n" >> main.py
+          printf "sys.path.append(os.path.dirname(os.path.abspath(__file__)))\n\n" >> main.py
 
-          class GenesisApp(App):
-              def build(self):
-                  self.server_thread = threading.Thread(target=self.run_server)
-                  self.server_thread.daemon = True
-                  self.server_thread.start()
-                  return Label(text="Aetherium Genesis\nMobile Host Active\nPort: 8000", halign="center")
+          printf "# Import the backend app\n" >> main.py
+          printf "try:\n" >> main.py
+          printf "    from src.backend.main import app as fastapi_app\n" >> main.py
+          printf "except ImportError as e:\n" >> main.py
+          printf "    print(f'CRITICAL ERROR IMPORTING BACKEND: {e}')\n" >> main.py
+          printf "    fastapi_app = None\n\n" >> main.py
 
-              def run_server(self):
-                  if fastapi_app:
-                      # Bind to 0.0.0.0 so other devices can access
-                      uvicorn.run(fastapi_app, host="0.0.0.0", port=8000, log_level="info")
+          printf "class GenesisApp(App):\n" >> main.py
+          printf "    def build(self):\n" >> main.py
+          printf "        self.server_thread = threading.Thread(target=self.run_server)\n" >> main.py
+          printf "        self.server_thread.daemon = True\n" >> main.py
+          printf "        self.server_thread.start()\n" >> main.py
+          printf "        return Label(text='Aetherium Genesis\\\nMobile Host Active\\\nPort: 8000', halign='center')\n\n" >> main.py
 
-          if __name__ == "__main__":
-              GenesisApp().run()
-          EOF
+          printf "    def run_server(self):\n" >> main.py
+          printf "        if fastapi_app:\n" >> main.py
+          printf "            # Bind to 0.0.0.0 so other devices can access\n" >> main.py
+          printf "            uvicorn.run(fastapi_app, host='0.0.0.0', port=8000, log_level='info')\n\n" >> main.py
+
+          printf "if __name__ == '__main__':\n" >> main.py
+          printf "    GenesisApp().run()\n" >> main.py
+
           echo "✅ main.py created."
 
           # 5. Clean up heavy/legacy directories
