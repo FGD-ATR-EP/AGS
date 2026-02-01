@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse, JSONResponse
 from itsdangerous import URLSafeTimedSerializer
 from typing import Optional
 import secrets
-import config
+from src.backend.core.config import settings
 import logging
 from .providers import get_auth_provider
 from .session_manager import AuthManager
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 # Initialize Managers
 auth_manager = AuthManager()
-signer = URLSafeTimedSerializer(config.SECRET_KEY, salt="logenesis-session")
+signer = URLSafeTimedSerializer(settings.SECRET_KEY, salt="logenesis-session")
 
 COOKIE_NAME = "logenesis_session"
 
@@ -89,7 +89,7 @@ async def callback(request: Request):
 
     # CSRF Check
     # Mock provider might assume strict state handling or bypass
-    if config.AUTH_PROVIDER != "mock" and state != stored_state:
+    if settings.AUTH_PROVIDER != "mock" and state != stored_state:
         logger.warning("CSRF State mismatch")
         raise HTTPException(status_code=400, detail="Invalid state parameter")
 

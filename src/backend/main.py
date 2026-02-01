@@ -13,8 +13,8 @@ from fastapi.responses import FileResponse
 
 import math
 from src.backend.genesis_core.logenesis.engine import LogenesisEngine
-from src.backend.genesis_core.logenesis.schemas import LogenesisResponse, IntentPacket
-from src.backend.genesis_core.logenesis.visual_schemas import TemporalPhase, IntentCategory, BaseShape
+from src.backend.genesis_core.models.logenesis import LogenesisResponse, IntentPacket
+from src.backend.genesis_core.models.visual import TemporalPhase, IntentCategory, BaseShape
 from src.backend.auth.routes import router as auth_router
 from src.backend.departments.development.javana_core.reflex_kernel import JavanaKernel
 from src.backend.departments.development.javana_core.responses import REFLEX_PARAMS
@@ -198,6 +198,10 @@ async def websocket_endpoint(websocket: WebSocket):
                 continue
 
             msg_type = msg.get("type")
+
+            if msg_type == "PING":
+                await websocket.send_text(json.dumps({"type": "PONG"}))
+                continue
 
             # --- New Protocol (Actuator UI) ---
             if msg_type in ["INTENT_START", "INTENT_END", "INTENT_RECOGNIZED", "RESET"]:

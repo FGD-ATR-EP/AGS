@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional
 import google.generativeai as genai
 
 from .interpreter import IntentInterpreter
-from .visual_schemas import EmbodimentContract
+from src.backend.genesis_core.models.visual import EmbodimentContract
 from .verifier import VisualVerifier
 
 logger = logging.getLogger("GeminiInterpreter")

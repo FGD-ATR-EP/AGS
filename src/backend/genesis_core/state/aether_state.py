@@ -1,6 +1,12 @@
 from enum import Enum
 from dataclasses import dataclass
-import torch
+from typing import Any
+try:
+    import torch
+    Tensor = torch.Tensor
+except ImportError:
+    torch = None
+    Tensor = Any
 
 class AetherState(Enum):
     IDLE = 0
@@ -11,8 +17,8 @@ class AetherState(Enum):
 
 @dataclass
 class AetherOutput:
-    light_field: torch.Tensor
-    embedding: torch.Tensor
+    light_field: Tensor
+    embedding: Tensor
     energy_level: float
     confidence: float
     state: AetherState

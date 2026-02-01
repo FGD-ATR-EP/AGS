@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, Any, Union
 from datetime import datetime
-from .visual_schemas import (
+from src.backend.genesis_core.models.visual import (
     VisualParameters, IntentCategory, BaseShape,
     EmbodimentContract, TemporalState, CognitiveMetadata, IntentData,
     TemporalPhase, ContractIntentCategory

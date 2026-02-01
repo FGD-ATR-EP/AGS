@@ -3,7 +3,12 @@ from typing import List, Optional, Dict, Any
 from enum import Enum
 import time
 import hashlib
-import torch
+try:
+    import torch
+    Tensor = torch.Tensor
+except ImportError:
+    torch = None
+    Tensor = Any
 
 # =============================================================================
 # AETHERIUM-GENESIS: DIGITAL DNA SPECIFICATION
@@ -23,10 +28,10 @@ class PhysicsIntentData:
     uChaos: float = 0.0  # Entropy / Uncertainty level
 
     # Emotional Spectrum (Vector3). Using Tensor[3] for R, G, B or X, Y, Z components.
-    uColor: torch.Tensor = field(default_factory=lambda: torch.tensor([0.0, 0.0, 0.0]))
+    uColor: Tensor = field(default_factory=lambda: torch.tensor([0.0, 0.0, 0.0]) if torch else [0.0, 0.0, 0.0])
 
     def __post_init__(self):
-        if not isinstance(self.uColor, torch.Tensor):
+        if torch and not isinstance(self.uColor, torch.Tensor):
             self.uColor = torch.tensor(self.uColor, dtype=torch.float32)
 
 # -----------------------------------------------------------------------------
@@ -39,10 +44,10 @@ class BioSensoryData:
     Source: BioVisionNet
     """
     # Raw Intensity Map (Tensor). Represents the raw visual input.
-    raw_intensity: torch.Tensor = field(default_factory=lambda: torch.empty(0))
+    raw_intensity: Tensor = field(default_factory=lambda: torch.empty(0) if torch else None)
 
     # Temporal Flow. Represents changes relative to previous timeframes.
-    temporal_flow: torch.Tensor = field(default_factory=lambda: torch.empty(0))
+    temporal_flow: Tensor = field(default_factory=lambda: torch.empty(0) if torch else None)
 
     time_of_day_context: float = 0.0 # Contextual brightness/dynamic range marker
 

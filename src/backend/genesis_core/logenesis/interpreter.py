@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
-from .visual_schemas import EmbodimentContract
+from src.backend.genesis_core.models.visual import EmbodimentContract
 
 class IntentInterpreter(ABC):
     """Abstract Base Class for interpreting natural language into EmbodimentContract.

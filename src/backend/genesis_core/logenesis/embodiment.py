@@ -1,6 +1,6 @@
 from typing import Dict, Any, Optional
 from datetime import datetime
-from .visual_schemas import (
+from src.backend.genesis_core.models.visual import (
     EmbodimentContract, VisualParameters, VisualSpecifics,
     IntentCategory, BaseShape, ContractIntentCategory, TemporalPhase
 )
