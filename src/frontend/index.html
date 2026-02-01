@@ -457,23 +457,65 @@
             }
 
             connect() {
+                if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) return;
+
                 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                 const host = window.location.host || 'localhost:8000';
                 const wsUrl = window.location.host ? `${protocol}//${host}/ws` : 'ws://localhost:8000/ws';
 
                 console.log(`NET: Connecting to ${wsUrl}...`);
                 this.ws = new WebSocket(wsUrl);
-                this.ws.onopen = () => console.log("NET: Uplink Established");
+
+                this.ws.onopen = () => {
+                    console.log("NET: Uplink Established");
+                    this.startHeartbeat();
+                    this.reconnectDelay = 1000; // Reset backoff
+                };
+
                 this.ws.onmessage = (event) => {
                      try {
                          const msg = JSON.parse(event.data);
+                         if (msg.type === "PONG") return; // Heartbeat ack
                          this.handleMessage(msg);
                      } catch(e) { console.error("Parse Error", e); }
                 };
+
                 this.ws.onclose = () => {
-                    console.log("NET: Disconnected. Retrying...");
-                    setTimeout(() => this.connect(), 3000);
+                    console.log("NET: Disconnected.");
+                    this.stopHeartbeat();
+                    this.scheduleReconnect();
                 };
+
+                this.ws.onerror = (err) => {
+                    console.error("NET: Error", err);
+                    this.ws.close();
+                };
+            }
+
+            startHeartbeat() {
+                this.stopHeartbeat();
+                this.heartbeatInterval = setInterval(() => {
+                    if (this.ws.readyState === WebSocket.OPEN) {
+                        this.ws.send(JSON.stringify({ type: "PING" }));
+                    }
+                }, 30000); // 30s
+            }
+
+            stopHeartbeat() {
+                if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+            }
+
+            scheduleReconnect() {
+                if (this.reconnectTimer) return;
+
+                const delay = this.reconnectDelay || 1000;
+                console.log(`NET: Reconnecting in ${delay}ms...`);
+
+                this.reconnectTimer = setTimeout(() => {
+                    this.reconnectTimer = null;
+                    this.reconnectDelay = Math.min((this.reconnectDelay || 1000) * 1.5, 30000); // Exponential backoff max 30s
+                    this.connect();
+                }, delay);
             }
 
             handleMessage(msg) {
@@ -724,6 +766,16 @@
 
             // Share WebSocket connection
             window.genesisCore.ws = system.ws;
+
+            // Mobile Resilience: Auto-reconnect on visibility change
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === 'visible') {
+                     console.log("NET: App visible, checking connection...");
+                     if (!system.ws || system.ws.readyState !== WebSocket.OPEN) {
+                         system.connect();
+                     }
+                }
+            });
 
             // 4. Override Message Handling for Enterprise Features
             const oldHandleMessage = system.handleMessage;

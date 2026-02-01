@@ -2,6 +2,29 @@ import os
 import sys
 import time
 import subprocess
+import glob
+
+def purge_stale_memory():
+    """
+    Cleans up stale Shared Memory segments from previous sessions.
+    Crucial for HyperSonic safety to avoid 'File exists' errors or memory leaks.
+    """
+    # Look for AetherBus shared memory files
+    # On Linux/macOS, shared memory is often in /dev/shm/
+    # The prefix is usually 'aether_' as defined in HyperSonicBus
+    shm_files = glob.glob("/dev/shm/aether_*")
+
+    if not shm_files:
+        return
+
+    print("[HYPERSONIC] 🧹 Purging stale memory segments...")
+    for f in shm_files:
+        try:
+            os.remove(f)
+            print(f"  - Removed: {f}")
+        except OSError as e:
+            print(f"  - ⚠️ Failed to purge {f}: {e}")
+    print("[HYPERSONIC] Memory clean.")
 
 def ritual_of_awakening():
     # 1. Visual Identity
@@ -42,6 +65,7 @@ def ritual_of_awakening():
 
 if __name__ == "__main__":
     try:
+        purge_stale_memory()
         ritual_of_awakening()
         # 4. Launch the original logic
         # Using subprocess to run uvicorn, similar to how run.py was invoking it or how the user requested.

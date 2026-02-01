@@ -3,9 +3,9 @@ import urllib.parse
 import httpx
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Tuple
-from .schemas import IdentityProfile, TokenSet
+from src.backend.genesis_core.models.auth import IdentityProfile, TokenSet
 import time
-import config
+from src.backend.core.config import settings
 
 class BaseAuthProvider(ABC):
     """Abstract base class for authentication providers."""
@@ -54,7 +54,7 @@ class MockAuthProvider(BaseAuthProvider):
             "code": "mock_auth_code_123",
             "state": state
         }
-        return f"{config.GOOGLE_REDIRECT_URI}?{urllib.parse.urlencode(params)}"
+        return f"{settings.GOOGLE_REDIRECT_URI}?{urllib.parse.urlencode(params)}"
 
     async def exchange_code(self, code: str) -> Tuple[IdentityProfile, TokenSet]:
         """Returns a fixed mock identity and token set.
@@ -87,9 +87,9 @@ class GoogleAuthProvider(BaseAuthProvider):
 
     def __init__(self):
         """Initializes the Google Auth Provider with credentials from config."""
-        self.client_id = config.GOOGLE_CLIENT_ID
-        self.client_secret = config.GOOGLE_CLIENT_SECRET
-        self.redirect_uri = config.GOOGLE_REDIRECT_URI
+        self.client_id = settings.GOOGLE_CLIENT_ID
+        self.client_secret = settings.GOOGLE_CLIENT_SECRET
+        self.redirect_uri = settings.GOOGLE_REDIRECT_URI
         self._config = None
 
     async def _get_config(self):
@@ -187,6 +187,6 @@ def get_auth_provider() -> BaseAuthProvider:
     Returns:
         An instance of GoogleAuthProvider or MockAuthProvider based on config.
     """
-    if config.AUTH_PROVIDER == "google":
+    if settings.AUTH_PROVIDER == "google":
         return GoogleAuthProvider()
     return MockAuthProvider()

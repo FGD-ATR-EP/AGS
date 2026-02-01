@@ -2,7 +2,7 @@ import asyncio
 from typing import Dict, Any, Optional
 from datetime import datetime
 from .interpreter import IntentInterpreter
-from .visual_schemas import (
+from src.backend.genesis_core.models.visual import (
     EmbodimentContract, TemporalState, CognitiveMetadata, IntentData,
     TemporalPhase, ContractIntentCategory
 )

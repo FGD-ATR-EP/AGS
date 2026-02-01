@@ -3,15 +3,20 @@ from typing import List, Optional, Dict, Any, Literal
 from enum import Enum
 from datetime import datetime
 from dataclasses import dataclass
-import torch
+try:
+    import torch
+    Tensor = torch.Tensor
+except ImportError:
+    torch = None
+    Tensor = Any
 
-from .light_schemas import LightIntent
-from .visual_schemas import VisualParameters
+from .light import LightIntent
+from .visual import VisualParameters
 
 @dataclass
 class IntentPacket:
     modality: Literal["text", "visual"]
-    embedding: Optional[torch.Tensor]
+    embedding: Optional[Tensor]
     energy_level: float
     confidence: float
     raw_payload: Any

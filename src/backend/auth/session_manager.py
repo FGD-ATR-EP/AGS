@@ -3,7 +3,7 @@ import os
 import time
 import logging
 from typing import Optional, Dict
-from .schemas import UserSession, TokenSet, IdentityProfile
+from src.backend.genesis_core.models.auth import UserSession, TokenSet, IdentityProfile
 
 logger = logging.getLogger("AuthManager")
 

@@ -7,19 +7,20 @@ from datetime import datetime
 from pydantic import ValidationError
 import logging
 
-from .schemas import (
+from src.backend.genesis_core.models.logenesis import (
     LogenesisResponse, LogenesisState, IntentVector, ExpressionState,
     VisualQualia, AudioQualia, PhysicsParams, IntentPacket, StateMetrics
 )
-from src.backend.departments.presentation.light_schemas import LightIntent, LightAction
+from src.backend.genesis_core.models.light import LightIntent, LightAction
 from src.backend.departments.presentation.formation_manager import FormationManager
 from src.backend.genesis_core.state.aether_state import AetherOutput, AetherState
 
 # New Imports
-from .visual_schemas import VisualParameters, IntentCategory, BaseShape, VisualSpecifics
+from src.backend.genesis_core.models.visual import VisualParameters, IntentCategory, BaseShape, VisualSpecifics
 from .gemini_interpreter import GeminiIntentInterpreter
 from .simulated_interpreter import SimulatedIntentInterpreter
-from .embodiment_adapter import EmbodimentAdapter
+from .embodiment import EmbodimentAdapter
+from src.backend.core.config import settings
 
 logger = logging.getLogger("LogenesisEngine")
 
@@ -112,7 +113,7 @@ class LogenesisEngine:
         self.adapter = EmbodimentAdapter()
 
         # Initialize Interpreter
-        api_key = os.environ.get("GOOGLE_API_KEY")
+        api_key = settings.GOOGLE_API_KEY
         if api_key:
             logger.info("Initializing Gemini Interpreter")
             self.interpreter = GeminiIntentInterpreter(api_key)
@@ -615,7 +616,7 @@ class LogenesisEngine:
         Returns:
             A RecallProposal if a match is found, otherwise None.
         """
-        from .schemas import RecallProposal
+        from src.backend.genesis_core.models.logenesis import RecallProposal
         text = text.lower()
         for item in memory_index:
             topic = item.get('topic', '').lower()
