@@ -12,6 +12,9 @@ package.domain = org.genesis
 # (str) Source code where the main.py live
 source.dir = .
 
+# (str) Source code filename (let empty to use main.py)
+source.main = run.py
+
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas,html,css,js
 

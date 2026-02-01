@@ -18,3 +18,5 @@ python-jose
 itsdangerous
 python-dotenv
 pydantic-settings
+kivy
+plyer
