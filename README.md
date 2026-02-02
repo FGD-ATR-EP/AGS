@@ -10,6 +10,13 @@
 
 ---
 
+## 📖 คู่มือการใช้งาน (User Guide)
+สำหรับรายละเอียดวิธีการติดตั้งและใช้งานอย่างครบถ้วน (Desktop, Mobile, API) กรุณาดูที่:
+*   [**🇹🇭 USAGE_TH.md (ภาษาไทย)**](USAGE_TH.md) - คู่มือหลักสำหรับผู้ใช้งานและนักพัฒนา
+*   [**🇬🇧 USAGE_EN.md (English)**](USAGE_EN.md) - Comprehensive User Guide
+
+---
+
 ## 🌌 บทนำ: นิยามแห่งตัวตน (Identity Definition)
 
 **Aetherium Genesis** คือ **โครงสร้างพื้นฐานทางปัญญา (Cognitive Infrastructure)** ที่ออกแบบมาเพื่อรองรับการให้เหตุผลตามเจตจำนง (Intent-driven reasoning) และการแสดงผลสถานะที่สังเกตได้ (Observable state signaling)
@@ -123,14 +130,19 @@ export PYTHONPATH=$PYTHONPATH:.
 ```
 
 2. ปลุกระบบ (Awaken)
-คุณสามารถเลือกโหมดการรันได้ 2 แบบ:
+คุณสามารถเลือกโหมดการรันได้ 3 แบบ (ดูรายละเอียดใน [USAGE_TH.md](USAGE_TH.md)):
 
-**แบบที่ A: The Ritual (สำหรับเริ่มระบบเต็มรูปแบบ)**
+**แบบที่ A: Web Interface / The Ritual (แนะนำ)**
 ```bash
 python awaken.py
 ```
 
-**แบบที่ B: The Core Backend (สำหรับนักพัฒนา)**
+**แบบที่ B: Mobile / Hybrid Mode**
+```bash
+python run.py
+```
+
+**แบบที่ C: The Core Backend (Advanced)**
 ```bash
 python -m uvicorn src.backend.main:app --port 8000
 ```
