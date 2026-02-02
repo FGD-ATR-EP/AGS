@@ -14,11 +14,11 @@ from src.backend.genesis_core.models.logenesis import (
 from src.backend.genesis_core.models.light import LightIntent, LightAction
 from src.backend.departments.presentation.formation_manager import FormationManager
 from src.backend.genesis_core.state.aether_state import AetherOutput, AetherState
+from src.backend.genesis_core.lifecycle import LifecycleManager
+from src.backend.genesis_core.models.intent import SystemIntent, IntentPayload, IntentContext
 
 # New Imports
-from src.backend.genesis_core.models.visual import VisualParameters, IntentCategory, BaseShape, VisualSpecifics
-from .gemini_interpreter import GeminiIntentInterpreter
-from .simulated_interpreter import SimulatedIntentInterpreter
+from src.backend.genesis_core.models.visual import VisualParameters, IntentCategory, BaseShape, VisualSpecifics, EmbodimentContract
 from .embodiment import EmbodimentAdapter
 from src.backend.core.config import settings
 
@@ -99,34 +99,39 @@ class StateStore:
         self.save() # Naive save on every update for now
 
 class LogenesisEngine:
-    """The Cognitive Fabric Implementation.
+    """The Cognitive Fabric Implementation (Refactored for Distributed Agents).
 
     This engine acts as the core reasoning substrate for the Cognitive Infrastructure.
     It manages the transition between 'Nirodha' (Stillness) and 'Awakened' (Active Processing)
-    states, not as a biological being, but as a state-aware execution environment.
+    states.
+
+    REFACTOR NOTICE: Cognitive Interpretation is now offloaded to AgioSage Agent via LifecycleManager.
+    This class now focuses on State Drift, Physics, and Orchestration.
     """
     def __init__(self):
-        """Initializes the engine, managers, adapters, and interpreters."""
+        """Initializes the engine, managers, adapters."""
         self.state = LogenesisState.VOID
         self.state_store = StateStore()
         self.formation_manager = FormationManager()
         self.adapter = EmbodimentAdapter()
 
-        # Initialize Interpreter
-        api_key = settings.GOOGLE_API_KEY
-        if api_key:
-            logger.info("Initializing Gemini Interpreter")
-            self.interpreter = GeminiIntentInterpreter(api_key)
-        else:
-            logger.warning("GOOGLE_API_KEY missing. Using Simulated Interpreter.")
-            self.interpreter = SimulatedIntentInterpreter()
+        # Lifecycle Manager (The K3s Simulator)
+        self.lifecycle = LifecycleManager()
+
+    async def startup(self):
+        """Initializes the distributed agent system."""
+        await self.lifecycle.startup()
+
+    async def shutdown(self):
+        """Shuts down the distributed agent system."""
+        await self.lifecycle.shutdown()
 
     async def process(self, packet: Union[IntentPacket, str], session_id: str = "global", memory_index: Optional[list] = None, recalled_context: Optional[str] = None) -> LogenesisResponse:
         """Processes an incoming intent packet and generates a cognitive response.
 
         This method orchestrates the full cognitive cycle:
         1. Normalization of input.
-        2. Intent Interpretation (via LLM or Simulation).
+        2. Intent Interpretation (via AgioSage Agent).
         3. Embodiment Adaptation (Translation to Visuals).
         4. State Drift Calculation (Physics of Thought).
         5. Manifestation Gating (Deciding to show visuals).
@@ -168,8 +173,36 @@ class LogenesisEngine:
 
         if packet.modality == "text":
             # 1. Intent Interpretation (The "Cognitive Cycle")
-            # Returns EmbodimentContract (High Level)
-            contract = await self.interpreter.interpret(text, context={"recalled": recalled_context})
+            # Returns EmbodimentContract (High Level) from AgioSage Agent
+
+            # Construct SystemIntent for the Bus
+            query_intent = SystemIntent(
+                origin_agent="LogenesisEngine",
+                target_agent="AgioSage_v1",
+                intent_type="COGNITIVE_QUERY",
+                payload=IntentPayload(content=text, modality="text"),
+                context=IntentContext(energy_level=packet.energy_level, emotional_valence=0.0)
+            )
+
+            # Request processing via Lifecycle
+            response_intent = await self.lifecycle.process_request(query_intent)
+
+            if response_intent and response_intent.intent_type == "COGNITIVE_RESPONSE":
+                try:
+                    # Deserialize contract
+                    contract_data = response_intent.payload.content
+                    contract = EmbodimentContract(**contract_data)
+                except Exception as e:
+                    logger.error(f"Failed to parse EmbodimentContract from AgioSage: {e}")
+            else:
+                logger.warning("AgioSage failed to respond. Using empty contract.")
+                # Fallback to keep system alive
+                contract = EmbodimentContract(
+                    temporal_state={"phase": "ERROR", "stability": 0.0},
+                    cognitive={"effort": 0.0, "uncertainty": 1.0},
+                    intent={"category": "SYSTEM_OPS", "purity": 0.0},
+                    text_content="[System Error: Cognitive Core Unreachable]"
+                )
 
             # 1.5 Adaptation (The "Nervous System")
             # Translates Contract -> VisualParameters (Low Level)
@@ -177,6 +210,7 @@ class LogenesisEngine:
 
             # Map New VisualParameters to Old IntentVector for Physics/Drift Logic
             input_intent = self._map_visual_to_intent_vector(visual_params)
+
         elif packet.modality == "visual":
              # Visual Path
              input_intent = self._map_visual_packet_to_intent(packet)
@@ -332,17 +366,7 @@ class LogenesisEngine:
          )
 
     def _check_manifestation_gate(self, visual_params: VisualParameters) -> bool:
-        """Determines if the interpreted intent has enough 'Will to Manifest' to justify a visual state change.
-
-        This acts as a high-pass filter for visual updates, preventing system jitter from
-        low-confidence or low-energy intent inputs.
-
-        Args:
-            visual_params: The proposed visual parameters.
-
-        Returns:
-            True if manifestation is granted, False otherwise.
-        """
+        """Determines if the interpreted intent has enough 'Will to Manifest' to justify a visual state change."""
         # Always manifest explicit commands, requests, or errors
         if visual_params.intent_category in [IntentCategory.COMMAND, IntentCategory.REQUEST, IntentCategory.ERROR]:
             return True
@@ -350,7 +374,6 @@ class LogenesisEngine:
         # For conversational intent (CHAT), check thresholds
         if visual_params.intent_category == IntentCategory.CHAT:
             # Manifest if high energy
-            # Analytic thoughts (Effort=0.8) result in Energy=0.52, so we lower threshold to 0.5
             if visual_params.energy_level > 0.5:
                 return True
             # Manifest if strong emotional valence
@@ -366,16 +389,7 @@ class LogenesisEngine:
         return True # Default safe open
 
     def _map_visual_to_intent_vector(self, vp: VisualParameters) -> IntentVector:
-        """Maps the new VisualParameters schema to the legacy IntentVector.
-
-        This ensures backward compatibility with the State Drift physics engine.
-
-        Args:
-            vp: The VisualParameters instance.
-
-        Returns:
-            An IntentVector derived from the visual parameters.
-        """
+        """Maps the new VisualParameters schema to the legacy IntentVector."""
         epistemic = 0.1
         if vp.intent_category == IntentCategory.REQUEST:
             epistemic = 0.8
@@ -402,16 +416,7 @@ class LogenesisEngine:
         )
 
     def _create_intent_from_params(self, vp: VisualParameters) -> LightIntent:
-        """Creates a LightIntent that carries the formation data if needed.
-
-        Uses the FormationManager to generate coordinate sets for specific shapes.
-
-        Args:
-            vp: The VisualParameters instance.
-
-        Returns:
-            A LightIntent object containing formation data.
-        """
+        """Creates a LightIntent that carries the formation data if needed."""
         shape_name = vp.visual_parameters.base_shape.value
         # Use FormationManager to get coords for specific shapes
         coords = self.formation_manager.calculate_formation(shape_name, 600, 1920, 1080)
@@ -424,114 +429,49 @@ class LogenesisEngine:
         )
 
     def _calculate_entropy(self, vector: IntentVector) -> float:
-        """Calculates the internal conflict (Intent Entropy) of a state vector.
-
-        Entropy measures the incompatibility of active dimensions.
-        Constraints:
-        1. High Precision + High Subjectivity = Conflict (Analytic Hallucination)
-        2. High Urgency + High Precision = Conflict (Cognitive Gridlock)
-
-        Args:
-            vector: The intent vector to analyze.
-
-        Returns:
-            A float between 0.0 (Crystal Clear) and 1.0 (Chaos).
-        """
+        """Calculates the internal conflict (Intent Entropy) of a state vector."""
         entropy = 0.0
-
-        # Constraint 1: Precision vs Subjectivity
-        # Trying to be rigid about a feeling.
         if vector.precision_required > 0.5 and vector.subjective_weight > 0.5:
             conflict = (vector.precision_required - 0.5) * (vector.subjective_weight - 0.5) * 4.0
-            entropy += conflict # Max add: 0.5 * 0.5 * 4 = 1.0
-
-        # Constraint 2: Urgency vs Precision
-        # "Do it perfectly, now."
+            entropy += conflict
         if vector.decision_urgency > 0.6 and vector.precision_required > 0.6:
             conflict = (vector.decision_urgency - 0.6) * (vector.precision_required - 0.6) * 6.25
-            entropy += conflict # Max add: 0.4 * 0.4 * 6.25 = 1.0
-
-        # Epistemic Need usually trades off with Subjective Weight, but can coexist (e.g. History)
-        # We add a small penalty if both are maxed to represent "Cognitive Load"
+            entropy += conflict
         if vector.epistemic_need > 0.8 and vector.subjective_weight > 0.8:
             entropy += 0.2
-
         return min(1.0, entropy)
 
     def _calculate_coherence(self, current_state: ExpressionState, proposed_vector: IntentVector) -> float:
-        """Calculates the Temporal Coherence of the state transition.
-
-        Measures if the proposed state logically follows the previous state given the inertia.
-
-        Args:
-            current_state: The state before the new intent is fully integrated.
-            proposed_vector: The target intent vector.
-
-        Returns:
-            A float between 0.0 (Disjoint) and 1.0 (Fluid).
-        """
-        # If no previous vector (start of session), coherence is perfect
+        """Calculates the Temporal Coherence of the state transition."""
         prev = current_state.current_vector
-
-        # Calculate Euclidean distance
         dist = math.sqrt(
             (proposed_vector.epistemic_need - prev.epistemic_need)**2 +
             (proposed_vector.subjective_weight - prev.subjective_weight)**2 +
             (proposed_vector.decision_urgency - prev.decision_urgency)**2 +
             (proposed_vector.precision_required - prev.precision_required)**2
         )
-
-        # Max theoretical distance in 4D unit cube is 2.0
-        # Expected max drift depends on Inertia (Inverse of Fluidity)
-        # If Inertia is High (0.9), allowed drift is Low.
-        # If Inertia is Low (0.1), allowed drift is High.
-
-        allowed_drift = (1.0 - current_state.inertia) * 2.0 # E.g. Inertia 0.8 -> Allowed 0.4 distance
-        allowed_drift = max(0.2, allowed_drift) # Minimum elasticity
+        allowed_drift = (1.0 - current_state.inertia) * 2.0
+        allowed_drift = max(0.2, allowed_drift)
 
         if dist <= allowed_drift:
             return 1.0
-
-        # Penalize excess drift
         excess = dist - allowed_drift
-        coherence = max(0.0, 1.0 - (excess * 1.5)) # Steep penalty
+        coherence = max(0.0, 1.0 - (excess * 1.5))
         return coherence
 
     def _apply_homeostasis(self, vector: IntentVector, entropy: float) -> IntentVector:
-        """Applies Level 1 Correction: Homeostasis.
-
-        Clamps incompatible dimensions to reduce entropy.
-
-        Args:
-            vector: The high-entropy vector.
-            entropy: The calculated entropy score.
-
-        Returns:
-            A corrected IntentVector.
-        """
-        # Create a copy
+        """Applies Level 1 Correction: Homeostasis."""
         new_vector = vector.model_copy()
-        correction_factor = min(0.5, entropy * 0.5) # Max correction 25%
-
-        # Fix Precision vs Subjectivity
+        correction_factor = min(0.5, entropy * 0.5)
         if new_vector.precision_required > 0.5 and new_vector.subjective_weight > 0.5:
-            # Reduce both to relieve tension
             new_vector.precision_required -= correction_factor
             new_vector.subjective_weight -= correction_factor
-
-        # Fix Urgency vs Precision
         if new_vector.decision_urgency > 0.6 and new_vector.precision_required > 0.6:
-            # Sacrifice Urgency for Precision (Logenesis prefers correctness)
             new_vector.decision_urgency -= (correction_factor * 1.5)
-
         return new_vector
 
     def enter_nirodha(self) -> LogenesisResponse:
-        """Transitions the system into the Nirodha (Stillness) state.
-
-        Returns:
-            A LogenesisResponse indicating the suspended state.
-        """
+        """Transitions the system into the Nirodha (Stillness) state."""
         self.state = LogenesisState.NIRODHA
         return LogenesisResponse(
             state=LogenesisState.NIRODHA,
@@ -547,14 +487,7 @@ class LogenesisEngine:
         return self.enter_nirodha()
 
     def _calculate_qualia(self, intent: IntentVector) -> VisualQualia:
-        """Derives visual qualia (color, shape, turbulence) from an intent vector.
-
-        Args:
-            intent: The intent vector.
-
-        Returns:
-            A VisualQualia object.
-        """
+        """Derives visual qualia (color, shape, turbulence) from an intent vector."""
         r, g, b = 224, 224, 224
         if intent.subjective_weight > 0.3:
             factor = intent.subjective_weight
@@ -583,14 +516,7 @@ class LogenesisEngine:
         )
 
     def _calculate_audio(self, intent: IntentVector) -> AudioQualia:
-        """Derives audio qualia from an intent vector.
-
-        Args:
-            intent: The intent vector.
-
-        Returns:
-            An AudioQualia object.
-        """
+        """Derives audio qualia from an intent vector."""
         rhythm = 0.1 + (intent.decision_urgency * 0.8)
         amp = 0.5 + (intent.decision_urgency * 0.4)
         texture = "smooth"
@@ -599,28 +525,13 @@ class LogenesisEngine:
         return AudioQualia(rhythm_density=rhythm, tone_texture=texture, amplitude_bias=amp)
 
     def _calculate_physics(self, intent: IntentVector) -> PhysicsParams:
-        """Derives physics parameters (spawn rate, decay) from an intent vector.
-
-        Args:
-            intent: The intent vector.
-
-        Returns:
-            A PhysicsParams object.
-        """
+        """Derives physics parameters (spawn rate, decay) from an intent vector."""
         spawn_rate = int(2 + (intent.subjective_weight * 5) + (intent.decision_urgency * 15))
         decay = max(0.001, 0.01 + (intent.decision_urgency * 0.05))
         return PhysicsParams(spawn_rate=spawn_rate, decay_rate=decay)
 
     def _check_recall(self, text: str, memory_index: list) -> Optional[Any]:
-        """Checks if the input text matches any items in the memory index.
-
-        Args:
-            text: The input text.
-            memory_index: A list of memory items.
-
-        Returns:
-            A RecallProposal if a match is found, otherwise None.
-        """
+        """Checks if the input text matches any items in the memory index."""
         from src.backend.genesis_core.models.logenesis import RecallProposal
         text = text.lower()
         for item in memory_index:
@@ -635,17 +546,7 @@ class LogenesisEngine:
         return None
 
     def _drift_state(self, current_state: ExpressionState, input_intent: IntentVector) -> ExpressionState:
-        """Calculates the new state by drifting from the current state towards the input intent.
-
-        Uses a weighted interpolation (Lerp) based on inertia and urgency.
-
-        Args:
-            current_state: The current ExpressionState.
-            input_intent: The new target IntentVector.
-
-        Returns:
-            The new ExpressionState.
-        """
+        """Calculates the new state by drifting from the current state towards the input intent."""
         urgency_factor = input_intent.decision_urgency
         base_inertia = 0.95
         effective_inertia = max(0.1, base_inertia - (0.8 * urgency_factor))
@@ -664,18 +565,7 @@ class LogenesisEngine:
         return ExpressionState(current_vector=new_vector, velocity=delta, inertia=effective_inertia, last_updated=datetime.now())
 
     def _synthesize_text(self, vector: IntentVector, raw_input: IntentVector, recalled_context: Optional[str] = None) -> str:
-        """Synthesizes a text response based on the intent vector (fallback mechanism).
-
-        Used when the LLM interpreter does not provide a text response.
-
-        Args:
-            vector: The drifted intent vector.
-            raw_input: The raw input intent vector.
-            recalled_context: Optional context string.
-
-        Returns:
-            A string response.
-        """
+        """Synthesizes a text response based on the intent vector (fallback mechanism)."""
         if recalled_context: return f"Memory Trace Active: {recalled_context[:30]}..."
         is_urgent = vector.decision_urgency > 0.5
         is_subjective = vector.subjective_weight > 0.5
