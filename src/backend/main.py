@@ -434,6 +434,10 @@ app.mount("/gunui", StaticFiles(directory="src/frontend/public/gunui"), name="gu
 app.mount("/icons", StaticFiles(directory="src/frontend/public/icons"), name="icons")
 app.mount("/public", StaticFiles(directory="src/frontend/public"), name="public")
 
+@app.get("/dashboard")
+async def dashboard():
+    return FileResponse("src/frontend/dashboard.html")
+
 # 3. Mount Root (The Living Interface)
 # NOTE: We mount src/frontend as root, so index.html is served at /
 app.mount("/", StaticFiles(directory="src/frontend", html=True), name="root")

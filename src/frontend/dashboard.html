@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AETHERIUM-GENESIS: Central AI Hub</title>
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
+
+    <!-- External Libs for Chat -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000000;
+            font-family: 'Courier New', monospace, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+        canvas { display: block; }
+
+        /* Minimal Control Layer (Legacy) */
+        #control-layer {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #trigger-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(8px);
+            pointer-events: auto;
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            cursor: pointer;
+            box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #trigger-btn::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        /* Active State */
+        #trigger-btn.active {
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.05);
+            transform: scale(0.95);
+        }
+
+        #trigger-btn.active::after {
+            background: #ffffff;
+            box-shadow: 0 0 10px #ffffff;
+        }
+
+        /* Listening/Talking State Pulse */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        #trigger-btn.listening {
+            animation: pulse 1.5s infinite;
+            border-color: rgba(100, 200, 255, 0.5);
+        }
+
+        #trigger-btn.listening::after {
+            background: #64c8ff;
+        }
+
+        /* New Enterprise Panels */
+        #department-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 300px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            z-index: 100;
+            display: none; /* Starts hidden */
+        }
+
+        .dept-status {
+            margin: 8px 0;
+            padding: 5px;
+            border-left: 3px solid;
+            transition: all 0.3s;
+        }
+
+        /* Department Colors */
+        .design { border-left-color: #FF6B8B; }
+        .presentation { border-left-color: #64C8FF; }
+        .marketing { border-left-color: #9D4EDD; }
+        .accounting { border-left-color: #00CC88; }
+        .development { border-left-color: #FFAA00; }
+        .decision { border-left-color: #FFFFFF; }
+
+        .active-dept {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        #enterprise-control {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* --- NEURAL CHAT OVERLAY --- */
+        #neural-chat-overlay {
+            position: absolute;
+            top: 60px; /* Below dept panel */
+            right: 20px;
+            width: 450px;
+            height: 70vh;
+            background: rgba(10, 15, 20, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            border-radius: 16px;
+            display: none; /* Toggleable */
+            flex-direction: column;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .chat-header {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            color: #64C8FF;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-controls button {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+        .chat-controls button:hover { color: #fff; }
+
+        #chat-history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scroll-behavior: smooth;
+        }
+
+        /* Scrollbar styling */
+        #chat-history::-webkit-scrollbar { width: 6px; }
+        #chat-history::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        #chat-history::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+        .message-row {
+            display: flex;
+            width: 100%;
+        }
+        .message-row.user { justify-content: flex-end; }
+        .message-row.ai { justify-content: flex-start; }
+
+        .chat-bubble {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .chat-bubble.user {
+            background: rgba(100, 200, 255, 0.15);
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            color: #e0e0e0;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-bubble.ai {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d0d0d0;
+            border-bottom-left-radius: 2px;
+        }
+
+        .chat-bubble code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #FF6B8B;
+        }
+
+        .chat-bubble pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 5px 0;
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .file-preview-area {
+            display: flex;
+            gap: 10px;
+            padding-bottom: 10px;
+            overflow-x: auto;
+        }
+
+        .file-tag {
+            background: rgba(255, 170, 0, 0.2);
+            border: 1px solid rgba(255, 170, 0, 0.5);
+            color: #FFD700;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        #chat-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            color: white;
+            font-family: inherit;
+            resize: none;
+            height: 40px;
+        }
+        #chat-input:focus {
+            outline: none;
+            border-color: #64C8FF;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            background: rgba(64, 200, 255, 0.2);
+            border-color: #64C8FF;
+        }
+
+        .send-btn { background: rgba(100, 200, 255, 0.1); color: #64C8FF; }
+        .send-btn:hover { background: rgba(100, 200, 255, 0.3); }
+
+    </style>
+</head>
+<body>
+    <canvas id="gun-canvas"></canvas>
+
+    <!-- Enterprise Control Panel -->
+    <div id="enterprise-control">
+        <button class="control-btn" onclick="toggleDepartmentPanel()">📊 Departments</button>
+        <button class="control-btn" onclick="toggleNeuralChat()">💬 Neural Link</button>
+        <button class="control-btn" onclick="initiateStrategyMeeting()">🤖 Strategy Hive</button>
+        <button class="control-btn" onclick="deployWorkerDrones()">🚀 Deploy Drones</button>
+    </div>
+
+    <!-- Neural Chat Overlay -->
+    <div id="neural-chat-overlay">
+        <div class="chat-header">
+            <div class="chat-title">
+                <span>⚡ NEURAL UPLINK // V.2.0</span>
+            </div>
+            <div class="chat-controls">
+                <button onclick="window.neuralChat.exportPDF()" title="Export PDF">📄</button>
+                <button onclick="window.neuralChat.clearChat()" title="Clear Memory">🗑️</button>
+                <button onclick="toggleNeuralChat()" title="Minimize">✖</button>
+            </div>
+        </div>
+
+        <div id="chat-history">
+            <!-- Messages will appear here -->
+            <div class="message-row ai">
+                <div class="chat-bubble ai">
+                    Aetherium Neural Link established. Ready for directive input or code analysis.
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <div id="file-preview" class="file-preview-area"></div>
+            <div class="input-wrapper">
+                <button class="action-btn" onclick="document.getElementById('file-upload').click()" title="Attach File">📎</button>
+                <input type="file" id="file-upload" hidden onchange="window.neuralChat.handleFileUpload(this)">
+
+                <textarea id="chat-input" placeholder="Transmit command or query..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); window.neuralChat.sendMessage();}"></textarea>
+
+                <button class="action-btn send-btn" onclick="window.neuralChat.sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Status Panel -->
+    <div id="department-panel">
+        <h3 style="margin-top: 0; color: #64C8FF;">AETHERIUM-GENESIS HUB</h3>
+        <div class="dept-status design">🛠️ AI Design System: <span id="design-status">Ready</span></div>
+        <div class="dept-status presentation">🎭 AI Presentation System: <span id="presentation-status">Ready</span></div>
+        <div class="dept-status marketing">📈 AI Marketing System: <span id="marketing-status">Ready</span></div>
+        <div class="dept-status accounting">💰 AI Accounting System: <span id="accounting-status">Ready</span></div>
+        <div class="dept-status development">⚡ AI Development System: <span id="development-status">Ready</span></div>
+        <div class="dept-status decision">🎯 AI Decision System: <span id="decision-status">Active</span></div>
+
+        <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+            <div>🌐 Active Connections: <span id="connection-count">1</span></div>
+            <div>🧠 Processing: <span id="processing-load">0%</span></div>
+            <div>⚙️ Mode: <span id="system-mode">Central Hub</span></div>
+        </div>
+    </div>
+
+    <!-- Legacy Control Layer -->
+    <div id="control-layer">
+        <div id="trigger-btn"></div>
+    </div>
+
+    <script>
+        // --- SERVICE WORKER ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW failed', err));
+            });
+        }
+
+        // ==========================================
+        // 1. INTENT -> LIGHT PHYSICS MAPPING (Legacy Base)
+        // ==========================================
+        class LightIntentMapper {
+            static hexToRgb(hex) {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? [
+                    parseInt(result[1], 16),
+                    parseInt(result[2], 16),
+                    parseInt(result[3], 16)
+                ] : [120, 160, 255];
+            }
+
+            static map(response) {
+                const base = {
+                    color: [120, 160, 255],
+                    velocity: 1.0,
+                    density: 0.6,
+                    turbulence: 0.2
+                };
+
+                // Priority 1: Backend Visual Qualia
+                if (response.visual_qualia) {
+                    base.color = this.hexToRgb(response.visual_qualia.color);
+                    base.turbulence = response.visual_qualia.turbulence;
+                    base.density = response.visual_qualia.intensity;
+                }
+
+                // Priority 2: Intent Vector Modulation
+                if (response.intent_debug) {
+                    const urgency = response.intent_debug.decision_urgency;
+                    base.velocity = 0.5 + (urgency * 2.5);
+                    if (urgency > 0.7) base.turbulence = Math.max(base.turbulence, 0.8);
+                }
+
+                return base;
+            }
+        }
+
+        // ==========================================
+        // 7. Enhanced LightIntentMapper for Enterprise
+        // ==========================================
+        class EnterpriseLightMapper extends LightIntentMapper {
+            static mapDepartmentResponse(response, department) {
+                const base = this.map(response);
+
+                // Department Colors
+                const deptColors = {
+                    'design': [255, 107, 139],      // Pink
+                    'presentation': [100, 200, 255], // Blue
+                    'marketing': [157, 78, 221],    // Purple
+                    'accounting': [0, 204, 136],    // Green
+                    'development': [255, 170, 0],   // Orange
+                    'decision': [255, 255, 255]     // White
+                };
+
+                if (department && deptColors[department]) {
+                    base.color = deptColors[department];
+
+                    if (department === 'development') {
+                        base.velocity = 2.0;
+                        base.turbulence = 0.4;
+                    } else if (department === 'accounting') {
+                        base.velocity = 0.8;
+                        base.turbulence = 0.1;
+                    }
+                }
+
+                return base;
+            }
+        }
+
+        // ==========================================
+        // 2. AUDIO ENERGY (Hybrid: Real + Simulated)
+        // ==========================================
+        class AudioEnergy {
+            constructor(audioElement = null) {
+                this.ctx = null;
+                this.analyser = null;
+                this.dataArray = null;
+                this.source = null;
+                this.isSimulating = false;
+                this.simulatedValue = 0;
+
+                if (audioElement) {
+                    this.initRealAudio(audioElement);
+                }
+            }
+
+            initRealAudio(audioElement) {
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    this.analyser = this.ctx.createAnalyser();
+                    this.analyser.fftSize = 256;
+                    this.source = this.ctx.createMediaElementSource(audioElement);
+                    this.source.connect(this.analyser);
+                    this.analyser.connect(this.ctx.destination);
+                    this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+                } catch (e) {
+                    console.warn("AudioContext init failed:", e);
+                }
+            }
+
+            setSimulatedState(isSpeaking) {
+                this.isSimulating = isSpeaking;
+            }
+
+            getEnergy() {
+                if (this.analyser) {
+                    this.analyser.getByteFrequencyData(this.dataArray);
+                    const avg = this.dataArray.reduce((a, b) => a + b, 0) / this.dataArray.length;
+                    return avg / 255;
+                }
+                if (this.isSimulating) {
+                    this.simulatedValue = (Math.random() * 0.4) + 0.3;
+                    return this.simulatedValue;
+                }
+                return 0;
+            }
+        }
+
+        // ==========================================
+        // 2.5 VOICE MODULE (TTS)
+        // ==========================================
+        class VoiceModule {
+            constructor(audioEnergy) {
+                this.synth = window.speechSynthesis;
+                this.audioEnergy = audioEnergy;
+                this.voice = null;
+                if (this.synth.onvoiceschanged !== undefined) {
+                    this.synth.onvoiceschanged = () => this.loadVoice();
+                }
+                this.loadVoice();
+            }
+
+            loadVoice() {
+                const voices = this.synth.getVoices();
+                this.voice = voices.find(v => v.name.includes('Google US English')) || voices.find(v => v.lang === 'en-US') || voices[0];
+            }
+
+            speak(text) {
+                if (!text) return;
+                if (this.synth.speaking) {
+                    this.synth.cancel();
+                }
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                if (this.voice) utterance.voice = this.voice;
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+
+                utterance.onstart = () => {
+                    this.audioEnergy.setSimulatedState(true);
+                    document.getElementById('trigger-btn').classList.add('active');
+                };
+
+                utterance.onend = () => {
+                    this.audioEnergy.setSimulatedState(false);
+                    document.getElementById('trigger-btn').classList.remove('active');
+                };
+
+                this.synth.speak(utterance);
+            }
+        }
+
+        // ==========================================
+        // 3. LIGHT FIELD CORE (Physics Engine)
+        // ==========================================
+        class LightField {
+            constructor(particles = [], width, height) {
+                this.particles = particles;
+                this.width = width;
+                this.height = height;
+                this.state = {
+                    color: [120, 160, 255],
+                    velocity: 0.5,
+                    density: 0.6,
+                    turbulence: 0.2,
+                    audioEnergy: 0
+                };
+            }
+
+            updateFromIntent(lightParams) {
+                this.state = { ...this.state, ...lightParams };
+            }
+
+            updateFromAudio(energy) {
+                this.state.audioEnergy = energy;
+            }
+
+            step() {
+                const energyFactor = this.state.audioEnergy * 3.0;
+                this.particles.forEach(p => {
+                    const jitter = (Math.random() - 0.5) * (this.state.turbulence + energyFactor * 0.5);
+                    p.vx += jitter;
+                    p.vy += jitter;
+                    p.vx *= 0.96;
+                    p.vy *= 0.96;
+                    const speed = this.state.velocity * (0.5 + energyFactor);
+                    p.x += p.vx * speed;
+                    p.y += p.vy * speed;
+
+                    if (p.x < 0) p.x = this.width;
+                    if (p.x > this.width) p.x = 0;
+                    if (p.y < 0) p.y = this.height;
+                    if (p.y > this.height) p.y = 0;
+                });
+            }
+
+            getRenderStyle() {
+                const [r, g, b] = this.state.color;
+                const alpha = Math.min(1.0, (this.state.density * 0.5) + (this.state.audioEnergy * 0.8));
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            }
+        }
+
+        // ==========================================
+        // 4. GUN UI (INTEGRATION LAYER)
+        // ==========================================
+        class GunUI {
+            constructor(lightField, voiceModule) {
+                this.lightField = lightField;
+                this.voiceModule = voiceModule;
+                this.ws = null;
+                this.isListening = false;
+                this.recognition = null;
+
+                this.setupRecognition();
+                this.connect();
+                this.setupUI();
+            }
+
+            setupRecognition() {
+                if ('webkitSpeechRecognition' in window) {
+                    this.recognition = new webkitSpeechRecognition();
+                    this.recognition.continuous = false;
+                    this.recognition.lang = 'en-US';
+                    this.recognition.interimResults = false;
+
+                    this.recognition.onstart = () => { console.log("Mic Active"); };
+                    this.recognition.onresult = (event) => {
+                        const text = event.results[0][0].transcript;
+                        console.log("User:", text);
+                        this.send(text);
+                    };
+                    this.recognition.onend = () => {
+                        console.log("Mic Ended");
+                        if (this.isListening) { try { this.recognition.start(); } catch(e){} }
+                        else { document.getElementById('trigger-btn').classList.remove('listening'); }
+                    };
+                    this.recognition.onerror = (e) => {
+                        console.log("Mic Error", e);
+                    };
+                }
+            }
+
+            setupUI() {
+                const btn = document.getElementById('trigger-btn');
+                btn.addEventListener('click', () => this.toggleListening());
+            }
+
+            connect() {
+                if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) return;
+
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const host = window.location.host || 'localhost:8000';
+                const wsUrl = window.location.host ? `${protocol}//${host}/ws` : 'ws://localhost:8000/ws';
+
+                console.log(`NET: Connecting to ${wsUrl}...`);
+                this.ws = new WebSocket(wsUrl);
+
+                this.ws.onopen = () => {
+                    console.log("NET: Uplink Established");
+                    this.startHeartbeat();
+                    this.reconnectDelay = 1000; // Reset backoff
+                };
+
+                this.ws.onmessage = (event) => {
+                     try {
+                         const msg = JSON.parse(event.data);
+                         if (msg.type === "PONG") return; // Heartbeat ack
+                         this.handleMessage(msg);
+                     } catch(e) { console.error("Parse Error", e); }
+                };
+
+                this.ws.onclose = () => {
+                    console.log("NET: Disconnected.");
+                    this.stopHeartbeat();
+                    this.scheduleReconnect();
+                };
+
+                this.ws.onerror = (err) => {
+                    console.error("NET: Error", err);
+                    this.ws.close();
+                };
+            }
+
+            startHeartbeat() {
+                this.stopHeartbeat();
+                this.heartbeatInterval = setInterval(() => {
+                    if (this.ws.readyState === WebSocket.OPEN) {
+                        this.ws.send(JSON.stringify({ type: "PING" }));
+                    }
+                }, 30000); // 30s
+            }
+
+            stopHeartbeat() {
+                if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+            }
+
+            scheduleReconnect() {
+                if (this.reconnectTimer) return;
+
+                const delay = this.reconnectDelay || 1000;
+                console.log(`NET: Reconnecting in ${delay}ms...`);
+
+                this.reconnectTimer = setTimeout(() => {
+                    this.reconnectTimer = null;
+                    this.reconnectDelay = Math.min((this.reconnectDelay || 1000) * 1.5, 30000); // Exponential backoff max 30s
+                    this.connect();
+                }, delay);
+            }
+
+            handleMessage(msg) {
+                // Default impl, overridden by AetheriumGenesisCore setup
+                const lightParams = LightIntentMapper.map(msg);
+                this.lightField.updateFromIntent(lightParams);
+                if (msg.text_content) this.voiceModule.speak(msg.text_content);
+            }
+
+            send(text) {
+                if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+                const payload = {
+                    mode: "logenesis",
+                    input: { text: text, session_id: "logenesis_web" }
+                };
+                this.ws.send(JSON.stringify(payload));
+            }
+
+            toggleListening() {
+                if (!this.recognition) { alert("Speech Recognition API not supported."); return; }
+                this.isListening = !this.isListening;
+                const btn = document.getElementById('trigger-btn');
+
+                if (this.isListening) {
+                    btn.classList.add('listening');
+                    try { this.recognition.start(); } catch(e){}
+                    this.lightField.updateFromIntent({ velocity: 2.0, density: 0.8 });
+                    setTimeout(() => { this.lightField.updateFromIntent({ velocity: 0.5, density: 0.6 }); }, 500);
+                } else {
+                    btn.classList.remove('listening');
+                    try { this.recognition.stop(); } catch(e){}
+                }
+            }
+        }
+
+        // ==========================================
+        // AETHERIUM-GENESIS: CENTRAL AI HUB (New Core)
+        // ==========================================
+
+        class DepartmentManager {
+            constructor() {
+                this.departments = {
+                    design: { name: 'AI Design System', status: 'ready', color: [255, 107, 139], lastActivity: Date.now() },
+                    presentation: { name: 'AI Presentation System', status: 'ready', color: [100, 200, 255], lastActivity: Date.now() },
+                    marketing: { name: 'AI Marketing System', status: 'ready', color: [157, 78, 221], lastActivity: Date.now() },
+                    accounting: { name: 'AI Accounting System', status: 'ready', color: [0, 204, 136], lastActivity: Date.now() },
+                    development: { name: 'AI Development System', status: 'ready', color: [255, 170, 0], lastActivity: Date.now() },
+                    decision: { name: 'AI Decision System', status: 'active', color: [255, 255, 255], lastActivity: Date.now() }
+                };
+            }
+
+            sendToDepartment(dept, message) {
+                if (this.departments[dept]) {
+                    console.log(`[Enterprise Bus] Sending to ${dept}:`, message);
+                    this.departments[dept].lastActivity = Date.now();
+                    this.departments[dept].status = 'processing';
+                    this.updateUI();
+
+                    if (window.genesisCore && window.genesisCore.ws) {
+                        const payload = { type: 'inter_department', target: dept, data: message, timestamp: Date.now() };
+                        window.genesisCore.ws.send(JSON.stringify(payload));
+                    }
+                    return true;
+                }
+                return false;
+            }
+
+            updateUI() {
+                for (const [key, dept] of Object.entries(this.departments)) {
+                    const element = document.getElementById(`${key}-status`);
+                    if (element) {
+                        element.textContent = dept.status.charAt(0).toUpperCase() + dept.status.slice(1);
+                        element.parentElement.classList.toggle('active-dept', dept.status === 'processing');
+                    }
+                }
+            }
+
+            initiateStrategyMeeting() {
+                console.log('[Strategy Hive] Initiating multi-department strategy session...');
+                document.getElementById('system-mode').textContent = 'Strategy Hive Active';
+                for (const key in this.departments) this.departments[key].status = 'contributing';
+                this.updateUI();
+                this.startMultiAgentDebate();
+            }
+
+            startMultiAgentDebate() {
+                const debateTopics = ["Q4 Budget Allocation", "Market Expansion", "UX Optimization", "Production Efficiency"];
+                const topic = debateTopics[Math.floor(Math.random() * debateTopics.length)];
+                console.log(`[Multi-Agent Debate] Topic: ${topic}`);
+                setTimeout(() => {
+                    if (window.voiceModule) window.voiceModule.speak(`Initiating strategy hive discussion on: ${topic}. All departments contributing.`);
+                }, 1000);
+            }
+        }
+
+        class WorkerDroneManager {
+            constructor() {
+                this.drones = [];
+                this.droneCount = 0;
+            }
+
+            deployDrone(type, task) {
+                const droneId = `drone-${++this.droneCount}`;
+                const drone = { id: droneId, type: type, task: task, status: 'deployed', deployedAt: Date.now() };
+                this.drones.push(drone);
+                console.log(`[Worker Drones] Deployed ${type} drone for: ${task}`);
+
+                const colorMap = {
+                    design: [255, 107, 139],
+                    marketing: [157, 78, 221],
+                    accounting: [0, 204, 136],
+                    development: [255, 170, 0],
+                    decision: [255, 255, 255]
+                };
+
+                if (colorMap[type] && window.lightField) {
+                    this.createDroneSwarm(colorMap[type]);
+                }
+                return droneId;
+            }
+
+            createDroneSwarm(color) {
+                for (let i = 0; i < 20; i++) {
+                    setTimeout(() => {
+                        if (window.lightField && window.lightField.particles) {
+                            const canvas = document.getElementById('gun-canvas');
+                            window.lightField.particles.push({
+                                x: Math.random() * canvas.width,
+                                y: Math.random() * canvas.height,
+                                vx: (Math.random() - 0.5) * 2,
+                                vy: (Math.random() - 0.5) * 2,
+                                size: Math.random() * 1.5 + 0.5,
+                                color: color,
+                                lifespan: 200,
+                                type: 'drone'
+                            });
+                        }
+                    }, i * 50);
+                }
+            }
+        }
+
+        class AetheriumGenesisCore {
+            constructor() {
+                this.departmentManager = new DepartmentManager();
+                this.droneManager = new WorkerDroneManager();
+                this.activeConnections = 1;
+                this.processingLoad = 0;
+
+                // References to legacy systems
+                this.lightField = null;
+                this.voiceModule = null;
+                this.ws = null;
+
+                this.init();
+            }
+
+            init() {
+                console.log('[AETHERIUM-GENESIS] Initializing Central AI Hub...');
+                this.updateStatusPanel();
+                setInterval(() => this.monitorSystem(), 2000);
+            }
+
+            monitorSystem() {
+                let activeDepartments = 0;
+                const now = Date.now();
+                for (const dept of Object.values(this.departmentManager.departments)) {
+                    if (dept.status === 'processing' || dept.status === 'contributing') activeDepartments++;
+                    if (now - dept.lastActivity > 10000 && dept.status !== 'active') dept.status = 'ready';
+                }
+                this.processingLoad = Math.min(100, (activeDepartments / 6) * 100);
+                this.departmentManager.updateUI();
+                this.activeConnections = 1 + activeDepartments + this.droneManager.drones.length;
+                this.updateStatusPanel();
+            }
+
+            updateStatusPanel() {
+                document.getElementById('connection-count').textContent = this.activeConnections;
+                document.getElementById('processing-load').textContent = `${Math.round(this.processingLoad)}%`;
+            }
+        }
+
+        // Global Control Functions
+        function toggleDepartmentPanel() {
+            const panel = document.getElementById('department-panel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleNeuralChat() {
+            const panel = document.getElementById('neural-chat-overlay');
+            panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        // ==========================================
+        // NEURAL CHAT SYSTEM
+        // ==========================================
+        class NeuralChat {
+            constructor() {
+                this.history = document.getElementById('chat-history');
+                this.input = document.getElementById('chat-input');
+                this.fileInput = document.getElementById('file-upload');
+                this.previewArea = document.getElementById('file-preview');
+                this.attachedContext = ""; // Stores file content
+            }
+
+            async handleFileUpload(input) {
+                const file = input.files[0];
+                if (!file) return;
+
+                const text = await file.text();
+                this.attachedContext += `\n\n--- FILE ATTACHMENT: ${file.name} ---\n${text}\n--- END ATTACHMENT ---\n`;
+
+                // Show Tag
+                const tag = document.createElement('div');
+                tag.className = 'file-tag';
+
+                const fileNameSpan = document.createElement('span');
+                fileNameSpan.textContent = `📄 ${file.name}`;
+                tag.appendChild(fileNameSpan);
+
+                const closeSpan = document.createElement('span');
+                closeSpan.textContent = ' ×';
+                closeSpan.style.cursor = 'pointer';
+                closeSpan.style.fontWeight = 'bold';
+                closeSpan.style.marginLeft = '5px';
+                closeSpan.addEventListener('click', () => {
+                    tag.remove();
+                    window.neuralChat.attachedContext = '';
+                });
+                tag.appendChild(closeSpan);
+
+                this.previewArea.appendChild(tag);
+
+                // Clear input to allow re-upload
+                input.value = '';
+            }
+
+            sendMessage() {
+                const text = this.input.value.trim();
+                if (!text && !this.attachedContext) return;
+
+                // Add User Message to UI
+                this.appendMessage('user', text + (this.attachedContext ? ' [File Attached]' : ''));
+
+                // Prepare Payload
+                const fullPayload = text + this.attachedContext;
+
+                // Send via System WebSocket
+                if (window.genesisCore && window.genesisCore.ws) {
+                    window.genesisCore.ws.send(JSON.stringify({
+                        mode: "logenesis",
+                        input: {
+                            text: fullPayload,
+                            session_id: "neural_uplink"
+                        }
+                    }));
+                }
+
+                // Clear
+                this.input.value = '';
+                this.attachedContext = '';
+                this.previewArea.innerHTML = '';
+            }
+
+            appendMessage(role, text) {
+                const row = document.createElement('div');
+                row.className = `message-row ${role}`;
+
+                const bubble = document.createElement('div');
+                bubble.className = `chat-bubble ${role}`;
+
+                // Render Markdown for AI, Plain text for User (safe)
+                if (role === 'ai') {
+                    bubble.innerHTML = marked.parse(text);
+                } else {
+                    bubble.textContent = text;
+                }
+
+                row.appendChild(bubble);
+                this.history.appendChild(row);
+                this.history.scrollTop = this.history.scrollHeight;
+            }
+
+            receiveResponse(response) {
+                // If response contains text_content, show it
+                if (response.text_content) {
+                    this.appendMessage('ai', response.text_content);
+                }
+            }
+
+            clearChat() {
+                this.history.innerHTML = '';
+            }
+
+            exportPDF() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                doc.setFont("courier");
+                doc.setFontSize(16);
+                doc.text("AETHERIUM GENESIS - NEURAL LOGS", 10, 20);
+
+                doc.setFontSize(10);
+                doc.text(`Exported: ${new Date().toLocaleString()}`, 10, 30);
+
+                let y = 40;
+
+                // Simple Text Export
+                // Note: Full HTML-to-PDF is complex. We'll do a text dump of conversation.
+                const messages = this.history.querySelectorAll('.chat-bubble');
+                messages.forEach(msg => {
+                    const role = msg.classList.contains('user') ? "OPERATOR" : "SYSTEM";
+                    const text = msg.innerText; // Get clean text from markdown
+
+                    doc.setFont("courier", "bold");
+                    doc.setTextColor(role === 'OPERATOR' ? [100, 100, 255] : [50, 50, 50]);
+                    doc.text(`[${role}]`, 10, y);
+                    y += 5;
+
+                    doc.setFont("courier", "normal");
+                    doc.setTextColor(0, 0, 0);
+
+                    const lines = doc.splitTextToSize(text, 180);
+                    doc.text(lines, 10, y);
+                    y += (lines.length * 5) + 5;
+
+                    if (y > 280) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                });
+
+                doc.save("neural-uplink-logs.pdf");
+            }
+        }
+
+        function initiateStrategyMeeting() {
+            if (window.genesisCore) {
+                window.genesisCore.departmentManager.initiateStrategyMeeting();
+                document.getElementById('department-panel').style.display = 'block';
+            }
+        }
+
+        function deployWorkerDrones() {
+            if (window.genesisCore) {
+                const tasks = [
+                    { type: 'design', task: 'Generate new brand assets' },
+                    { type: 'marketing', task: 'Analyze social media trends' },
+                    { type: 'accounting', task: 'Process quarterly reports' },
+                    { type: 'development', task: 'Scan for security vulnerabilities' },
+                    { type: 'decision', task: 'Evaluate new market opportunities' }
+                ];
+                tasks.forEach((t, i) => {
+                    setTimeout(() => window.genesisCore.droneManager.deployDrone(t.type, t.task), i * 300);
+                });
+                if (window.voiceModule) window.voiceModule.speak("Deploying worker drones to all departments. Autonomous operations commencing.");
+            }
+        }
+
+        // ==========================================
+        // BOOTSTRAP & INTEGRATION
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Setup Canvas & Physics (Legacy)
+            const canvas = document.getElementById('gun-canvas');
+            const ctx = canvas.getContext('2d');
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            // Init Particles
+            const particleCount = 600;
+            const particles = Array.from({ length: particleCount }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: 0,
+                vy: 0,
+                size: Math.random() * 2 + 1
+            }));
+
+            const lightField = new LightField(particles, canvas.width, canvas.height);
+            const audioEnergy = new AudioEnergy();
+            const voiceModule = new VoiceModule(audioEnergy);
+
+            // 2. Setup Legacy System
+            const system = new GunUI(lightField, voiceModule);
+
+            // 3. Expose to Window & Setup Genesis Core (New)
+            window.lightField = lightField;
+            window.voiceModule = voiceModule;
+            window.genesisCore = new AetheriumGenesisCore();
+            window.neuralChat = new NeuralChat();
+
+            // Share WebSocket connection
+            window.genesisCore.ws = system.ws;
+
+            // Mobile Resilience: Auto-reconnect on visibility change
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === 'visible') {
+                     console.log("NET: App visible, checking connection...");
+                     if (!system.ws || system.ws.readyState !== WebSocket.OPEN) {
+                         system.connect();
+                     }
+                }
+            });
+
+            // 4. Override Message Handling for Enterprise Features
+            const oldHandleMessage = system.handleMessage;
+            system.handleMessage = function(msg) {
+                // Check if message is department specific
+                let department = null;
+                if (msg.intent_debug && msg.intent_debug.source_department) {
+                    department = msg.intent_debug.source_department;
+                }
+
+                // Use Enterprise Mapper
+                const lightParams = EnterpriseLightMapper.mapDepartmentResponse(msg, department);
+                this.lightField.updateFromIntent(lightParams);
+
+                // --- INTEGRATION: Neural Chat ---
+                // Pass response to Chat UI if it's active or if we received text
+                if (window.neuralChat && msg.text_content) {
+                    window.neuralChat.receiveResponse(msg);
+                }
+                // -------------------------------
+
+                if (msg.text_content) {
+                    this.voiceModule.speak(msg.text_content);
+                }
+
+                if (department && window.genesisCore) {
+                    window.genesisCore.departmentManager.departments[department].lastActivity = Date.now();
+                }
+            };
+
+            // 5. Start Animation Loop (Legacy)
+            function animate() {
+                const energy = audioEnergy.getEnergy();
+                lightField.updateFromAudio(energy);
+                lightField.step();
+
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = lightField.getRenderStyle();
+
+                particles.forEach(p => {
+                    if (p.type === 'drone') {
+                        // Render drones differently
+                         p.lifespan--;
+                         if (p.lifespan <= 0) {
+                             // Remove dead particles (simplistic)
+                             p.x = -100;
+                         }
+                         ctx.fillStyle = `rgb(${p.color[0]}, ${p.color[1]}, ${p.color[2]})`;
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * (1 + energy), 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Reset fill for normal particles
+                    if (p.type === 'drone') ctx.fillStyle = lightField.getRenderStyle();
+                });
+
+                requestAnimationFrame(animate);
+            }
+            animate();
+
+            // 6. Auto-activate Enterprise Dashboard
+            setTimeout(() => {
+                document.getElementById('department-panel').style.display = 'block';
+                if (window.voiceModule) {
+                    window.voiceModule.speak("Aetherium Genesis Central Hub online. All systems operational. Six departments ready for autonomous enterprise mode.");
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
