@@ -116,6 +116,10 @@ clients = set()
 @app.on_event("startup")
 async def startup_event():
     global auditorium
+
+    # Awakening: Start the Bio-Digital Organism
+    await engine.startup()
+
     # Start Auditorium Service
     auditorium = AuditoriumService(engine)
     auditorium.start()
@@ -126,6 +130,9 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     global auditorium
+    # Enter Nirodha
+    await engine.shutdown()
+
     if auditorium:
         await auditorium.stop()
 
