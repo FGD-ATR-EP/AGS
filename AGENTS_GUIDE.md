@@ -11,16 +11,17 @@ The codebase has been refactored (as of [Current Date]) to separate active core 
 ### 1. The Core (`src/backend`)
 *   **Purpose:** The active reasoning engine (`LogenesisEngine`) and server.
 *   **Key Files:**
-    *   `src/backend/server.py`: The main entry point.
+    *   `src/backend/main.py`: The main entry point (executed by `awaken.py`).
     *   `src/backend/core/logenesis_engine.py`: The cognitive loop.
     *   `src/backend/core/visual_schemas.py`: The visual language contracts.
 *   **Directive:** All new backend logic must reside here.
 
-### 2. The Actuator (`gunui/`)
+### 2. The Interface (`src/frontend/`)
 *   **Purpose:** The active frontend interface.
 *   **Key Files:**
-    *   `gunui/index.html`: The canonical UI file.
-*   **Directive:** Use `gunui` for all frontend tasks. Do not use `gunui_react` or `index.html` (root) unless specifically migrating legacy features.
+    *   `src/frontend/index.html`: The Central AI Hub (Root).
+    *   `src/frontend/public/gunui/index.html`: The Actuator UI (Legacy/Specific).
+*   **Directive:** `src/frontend` is served as the root application. Use `src/frontend/public/gunui` only for specific actuator tasks.
 
 ### 3. The Archive (`legacy/`)
 *   **Purpose:** A holding zone for dormant, fragmented, or experimental modules.
