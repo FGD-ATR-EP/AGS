@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai_utils"
+version = "0.1.0"
+description = "เครื่องมือช่วยประมวลผลข้อมูลพื้นฐานสำหรับโมเดล AI"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [{name = "lnspira", email = "your@email.com"}]
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+dev = ["pytest", "black", "ruff"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ai_utils*"]
