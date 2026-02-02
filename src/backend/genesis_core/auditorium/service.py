@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import json
-from src.backend.genesis_core.bus.hyper_sonic import HyperSonicBus
+from src.backend.genesis_core.bus.factory import BusFactory
 from .dashboard import AetheriumHealthDashboard
 
 logger = logging.getLogger("AuditoriumService")
@@ -10,7 +10,7 @@ class AuditoriumService:
     def __init__(self, engine):
         self.engine = engine
         self.dashboard = AetheriumHealthDashboard(engine)
-        self.bus = HyperSonicBus() # Writer role
+        self.bus = BusFactory.get_bus() # Polymorphic Bus
         self.running = False
         self.task = None
 
@@ -31,6 +31,14 @@ class AuditoriumService:
 
     async def monitor_loop(self):
         logger.info("🏛️ Auditorium Monitor Loop Active")
+
+        # Ensure Bus Connection
+        try:
+            await self.bus.connect()
+        except Exception as e:
+            logger.error(f"Failed to connect to AetherBus: {e}")
+            # Continue anyway? Might fail to write.
+
         while self.running:
             try:
                 # 1. Update Auditors with Engine State
@@ -56,8 +64,8 @@ class AuditoriumService:
 
                 # 3. Publish to AetherBus
                 # Topic: system.health.report
-                payload = json.dumps(report).encode()
-                msg_id = self.bus.write("system.health.report", payload)
+                # Send raw dict, let the Bus handle serialization (Polymorphic)
+                msg_id = self.bus.write("system.health.report", report)
 
                 # logger.debug(f"Health Report Published: {msg_id}")
 

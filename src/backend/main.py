@@ -3,13 +3,24 @@ import json
 import logging
 import os
 import sys
+import time
+import msgpack
 
 # Ensure src is in path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+# Try to load uvloop for high performance (Server Mode)
+try:
+    import uvloop
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+except ImportError:
+    pass
+
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 import math
 from src.backend.genesis_core.logenesis.engine import LogenesisEngine
@@ -21,14 +32,45 @@ from src.backend.departments.development.javana_core.responses import REFLEX_PAR
 
 # Auditorium Imports
 from src.backend.genesis_core.auditorium.service import AuditoriumService
-from src.backend.genesis_core.bus.hyper_sonic import HyperSonicReader
+from src.backend.genesis_core.bus.factory import BusFactory
 import zlib
 from typing import Optional
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("AetherServer")
 
+# --- Gatekeeper Middleware (Rate Limiting) ---
+class GatekeeperMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app):
+        super().__init__(app)
+        self.request_counts = {} # IP -> (timestamp, count)
+        # Simple token bucket or window
+        self.RATE_LIMIT = 1000 # requests per second (Very high for internal, adjust for public)
+
+    async def dispatch(self, request: Request, call_next):
+        # Basic Logic:
+        # In a real scenario, use Redis. Here strictly in-memory for demo/speed.
+        client_ip = request.client.host
+        now = time.time()
+
+        # Cleanup old entries (lazy)
+        if client_ip in self.request_counts:
+            ts, count = self.request_counts[client_ip]
+            if now - ts > 1.0:
+                 self.request_counts[client_ip] = (now, 1)
+            else:
+                 if count > self.RATE_LIMIT:
+                     # 429 Too Many Requests
+                     return JSONResponse(status_code=429, content={"error": "Gatekeeper: Rate Limit Exceeded"})
+                 self.request_counts[client_ip] = (ts, count + 1)
+        else:
+             self.request_counts[client_ip] = (now, 1)
+
+        response = await call_next(request)
+        return response
+
 app = FastAPI()
+app.add_middleware(GatekeeperMiddleware)
 app.include_router(auth_router)
 
 # Global Services
@@ -102,55 +144,47 @@ async def broadcast_to_clients(message: dict):
 
 async def health_broadcast_loop():
     """Reads health reports from AetherBus and broadcasts to WebSockets."""
-    reader = HyperSonicReader()
-    # Retry connection
-    connected = False
-    for _ in range(5):
-        if reader.connect():
-            connected = True
-            break
-        await asyncio.sleep(1)
+    bus = BusFactory.get_bus()
 
-    if not connected:
-        logger.warning("Health Broadcast: Could not connect to AetherBus Reader (Bus might be cold)")
-        # We don't return here, we might want to retry later or just loop
-        # But for now let's assume if it fails initially, we retry in loop
+    # Ensure connected
+    try:
+        await bus.connect()
+    except Exception as e:
+        logger.warning(f"Health Broadcast: Connect Warning: {e}")
 
     logger.info("Health Broadcast Loop Started")
-    target_topic_hash = zlib.crc32("system.health.report".encode()) & 0xFFFFFFFF
 
-    while True:
+    async def on_health_report(envelope):
         try:
-            if not connected:
-                 if reader.connect():
-                     connected = True
-                 else:
-                     await asyncio.sleep(5)
-                     continue
+            data = None
+            try:
+                # Try unpack msgpack (AetherBusExtreme)
+                data = envelope.unpack_payload()
+            except Exception:
+                # Fallback to JSON (HyperSonic Legacy)
+                try:
+                    data = json.loads(envelope.payload)
+                except Exception:
+                    pass
 
-            found_any = False
-            # Read all available messages
-            for timestamp, msg_id, topic_hash, payload in reader.read():
-                if topic_hash == target_topic_hash:
-                    try:
-                        data = json.loads(payload)
-                        msg = {
-                            "type": "HEALTH_UPDATE",
-                            "payload": data
-                        }
-                        await broadcast_to_clients(msg)
-                        found_any = True
-                    except json.JSONDecodeError:
-                        pass
-
-            if not found_any:
-                await asyncio.sleep(1.0)
-            else:
-                await asyncio.sleep(0.1)
-
+            if data:
+                msg = {
+                    "type": "HEALTH_UPDATE",
+                    "payload": data
+                }
+                await broadcast_to_clients(msg)
         except Exception as e:
-            logger.error(f"Health Broadcast Error: {e}")
-            await asyncio.sleep(5)
+            logger.error(f"Health Broadcast Handler Error: {e}")
+
+    # Subscribe
+    try:
+        await bus.subscribe("system.health.report", on_health_report)
+    except Exception as e:
+        logger.error(f"Health Broadcast Subscribe Error: {e}")
+
+    # Keep alive loop
+    while True:
+        await asyncio.sleep(3600)
 
 @app.websocket("/ws/v2/stream")
 async def websocket_v2_endpoint(websocket: WebSocket):
