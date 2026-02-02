@@ -21,11 +21,18 @@ except ImportError:
     logger.warning("Torch not found. Using Mock Vision Core.")
 
     class MockModule:
+        """
+        A lightweight shim for torch.nn.Module to allow execution in headless/mobile environments
+        where PyTorch is not available.
+        """
         def __init__(self, *args, **kwargs):
             pass
 
         def __call__(self, *args, **kwargs):
-            # THE FIX: Delegate to forward so it runs in headless mode
+            """
+            Mimics nn.Module.__call__ by delegating to forward() if it exists.
+            This allows instances to be used as functors.
+            """
             if hasattr(self, "forward"):
                 return self.forward(*args, **kwargs)
             return None
