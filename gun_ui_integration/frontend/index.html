@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>GunUI: Vessel of Living Light</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #050505;
+            overflow: hidden;
+            font-family: monospace;
+        }
+        canvas {
+            display: block;
+            filter: blur(1px) contrast(1.2);
+        }
+        #status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00f3ff;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="status">
+        SYSTEM: AETHERIUM GENESIS<br>
+        STATE: AWAKE (Waiting for Intent...)
+    </div>
+    <canvas id="gunCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gunCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let intent = { x: null, y: null };
+        let globalColor = 'rgba(0, 243, 255, 0.5)';
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 1;
+                this.vy = (Math.random() - 0.5) * 1;
+                this.size = Math.random() * 2;
+            }
+
+            update() {
+                if (intent.x != null) {
+                    const dx = intent.x - this.x;
+                    const dy = intent.y - this.y;
+                    this.vx += dx * 0.0005;
+                    this.vy += dy * 0.0005;
+                }
+                this.vx *= 0.95;
+                this.vy *= 0.95;
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0) this.x = width;
+                if (this.x > width) this.x = 0;
+                if (this.y < 0) this.y = height;
+                if (this.y > height) this.y = 0;
+            }
+
+            draw() {
+                ctx.fillStyle = globalColor;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 800; i++) particles.push(new Particle());
+
+        window.addEventListener('mousemove', e => {
+            intent.x = e.clientX;
+            intent.y = e.clientY;
+        });
+        window.addEventListener('mouseout', () => {
+            intent.x = null;
+            intent.y = null;
+        });
+
+        function animate() {
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.2)';
+            ctx.fillRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        function updateGlobalColor(hexCode) {
+            const hex = hexCode.replace('#', '');
+            const r = parseInt(hex.substring(0, 2), 16);
+            const g = parseInt(hex.substring(2, 4), 16);
+            const b = parseInt(hex.substring(4, 6), 16);
+            globalColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
+        }
+
+        const ws = new WebSocket(`ws://${location.host}/ws`);
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            updateGlobalColor(data.color);
+            document.getElementById('status').innerHTML = `SYSTEM: AETHERIUM GENESIS<br>STATE: ${data.state.toUpperCase()}`;
+        };
+    </script>
+</body>
+</html>
