@@ -57,3 +57,23 @@ buildozer --spec archive/legacy_v1/kivy_specs/buildozer.spec android debug
 *   **WebSocket Endpoint:** `ws://localhost:8000/ws`
     *   ใช้สำหรับส่งข้อความ (Text) และรับสถานะ (State/Visuals) แบบ Real-time
 *   **Health Check Protocol:** ระบบมีการส่งข้อมูลสุขภาพ (Heartbeat) ผ่าน AetherBus ซึ่งสามารถดักจับได้ผ่าน WebSocket เดียวกัน
+
+---
+
+## 4. Genesis Journal CLI (แอปพลิเคชัน Python สำหรับบันทึกเจตจำนง)
+แอปพลิเคชัน CLI นี้ใช้สำหรับบันทึกโน้ต/เจตจำนงแบบเรียบง่ายลงในไฟล์ `src/backend/data/genesis_journal.json`
+
+### การเพิ่มบันทึก (Add Entry)
+```bash
+python -m src.backend.apps.genesis_journal add --title "จุดประสงค์" --content "บันทึกเจตจำนงที่ต้องการเก็บรักษา"
+```
+
+### การแสดงรายการล่าสุด (List Entries)
+```bash
+python -m src.backend.apps.genesis_journal list --limit 5
+```
+
+### การล้างบันทึกทั้งหมด (Clear Entries)
+```bash
+python -m src.backend.apps.genesis_journal clear --yes
+```
