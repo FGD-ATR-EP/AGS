@@ -56,6 +56,21 @@ def test_physics_tick():
     assert updated_entity.velocity[0] < 0.1
     assert abs(updated_entity.velocity[0] - 0.095) < 0.0001
 
+def test_target_position_zero_vector():
+    lcl = LightControlLogic()
+    entity = LightEntity(
+        id="e1",
+        position=(0.5, 0.5),
+        velocity=(0.0, 0.0),
+        energy=1.0,
+        target_position=(0.0, 0.0)
+    )
+    lcl.entities = {"e1": entity}
+
+    updated_entity = lcl.entities["e1"]
+
+    assert updated_entity.target_position == (0.0, 0.0)
+
 def test_process_spawn_move():
     lcl = LightControlLogic()
 

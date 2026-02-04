@@ -47,7 +47,7 @@ To start the **Cognitive Core** and the **Web Server**, run the following comman
 export PYTHONPATH=$PYTHONPATH:.
 
 # 2. Launch the Server
-python -m uvicorn src.backend.server:app --port 8000
+python -m uvicorn src.backend.main:app --port 8000
 ```
 
 You should see output indicating that the server has started (e.g., `Uvicorn running on http://127.0.0.1:8000`).

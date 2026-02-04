@@ -134,7 +134,7 @@ class LightControlLogic:
         self._vel[idx] = vel
         self._energy_levels[idx] = energy
 
-        if target_pos:
+        if target_pos is not None:
             self._target_pos[idx] = target_pos
             self._has_target[idx] = True
         else:
