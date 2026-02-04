@@ -15,8 +15,9 @@ class AkashicRecords:
         self.ensure_db()
 
     def ensure_db(self):
-        if not os.path.exists(os.path.dirname(self.db_path)):
-            os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        directory = os.path.dirname(self.db_path)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory, exist_ok=True)
         if not os.path.exists(self.db_path):
             with open(self.db_path, 'w') as f:
                 json.dump({"chain": []}, f)
