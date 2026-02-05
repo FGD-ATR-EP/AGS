@@ -6,6 +6,7 @@ fastapi
 uvicorn
 pydantic
 requests
+PyJWT[crypto]
 google-generativeai
 Pillow
 httpx
@@ -14,7 +15,6 @@ diffusers
 transformers
 accelerate
 websockets
-python-jose
 itsdangerous
 python-dotenv
 pydantic-settings
