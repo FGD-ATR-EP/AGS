@@ -23,6 +23,7 @@ GENESIS::OMNI_STATE_MANIFEST
   - Javana Reflex Kernel (Response System)
   - Genesis Server (FastAPI)
   - Aetherium Frontend (HTML/JS)
+  - LightControlLogic (Presentation Layer)
 - Dormant Designs       :
   - GunUI (Mobile/Kivy) -> Archived
   - Rituals (Inspira) -> Archived
@@ -33,14 +34,15 @@ GENESIS::OMNI_STATE_MANIFEST
 - Structural Risk       : MEDIUM
   - Logic/Config mix in `src/backend/core`.
   - Binary file `src/backend/core/perception/chromatic_core` checked into source.
-- Semantic Drift Risk   : LOW
+- Semantic Drift Risk   : LOW (Mitigated)
+  - Fixed import drifts in `src/backend/genesis_core/logenesis/lightweight_ai.py` and associated tests.
 - Future Bug Vectors    :
   - `tests/test_manifestation_gate.py`: Fails due to synchronous call of async method.
 
 [RECOMMENDATION]
 - Freeze Expansion      : NO
 - Refactor Priority     :
-  1. Relocate `src/backend/core/perception` to `src/backend/genesis_core`.
+  1. Relocate `src/backend/core/perception` to `src/backend/genesis_core` or `src/backend/departments/design`.
   2. Remove binary files from source control; use build steps.
   3. Fix async test patterns in `test_manifestation_gate.py`.
 - Safe Extension Zones  :

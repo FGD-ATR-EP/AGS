@@ -1,5 +1,5 @@
-from .light_schemas import LightIntent, LightAction, TemporalType
-from .search_schemas import SearchIntent
+from ..models.light import LightIntent, LightAction, TemporalType
+from ..models.search import SearchIntent
 import re
 from typing import Dict, Any, Union
 

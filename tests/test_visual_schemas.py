@@ -1,5 +1,5 @@
 import pytest
-from src.backend.genesis_core.logenesis.visual_schemas import VisualParameters, IntentCategory, BaseShape
+from src.backend.genesis_core.models.visual import VisualParameters, IntentCategory, BaseShape
 
 def test_visual_parameters_validation():
     # Valid
