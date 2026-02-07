@@ -31,8 +31,10 @@ from src.backend.auth.routes import router as auth_router
 from src.backend.routers.aetherium import router as aetherium_router
 from src.backend.routers.metrics import router as metrics_router
 from src.backend.routers.metrics import MetricCollector
+from src.backend.routers.entropy import router as entropy_router
 from src.backend.genesis_core.bus.extreme import AetherBusExtreme
 from src.backend.security.key_manager import KeyManager
+from src.backend.genesis_core.entropy import AkashicTreasury, EntropyValidator
 
 from src.backend.departments.development.javana_core.reflex_kernel import JavanaKernel
 from src.backend.departments.development.javana_core.responses import REFLEX_PARAMS
@@ -81,6 +83,7 @@ app.add_middleware(GatekeeperMiddleware)
 app.include_router(auth_router)
 app.include_router(aetherium_router)
 app.include_router(metrics_router)
+app.include_router(entropy_router)
 
 # Global Services
 auditorium: Optional[AuditoriumService] = None
@@ -138,6 +141,8 @@ async def startup_event():
 
     # Initialize Security & Metrics
     app.state.key_manager = KeyManager()
+    app.state.entropy_validator = EntropyValidator()
+    app.state.akashic_treasury = AkashicTreasury()
 
     metric_collector = MetricCollector.get_instance()
     app.state.metric_collector = metric_collector
