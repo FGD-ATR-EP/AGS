@@ -156,6 +156,15 @@
             transform: translateY(-2px);
         }
 
+        .control-btn.linked {
+            background: rgba(0, 255, 136, 0.15);
+            border-color: #00CC88;
+            color: #00CC88;
+        }
+        .control-btn.linked:hover {
+            background: rgba(0, 255, 136, 0.25);
+        }
+
         /* --- NEURAL CHAT OVERLAY --- */
         #neural-chat-overlay {
             position: absolute;
@@ -345,6 +354,7 @@
 
     <!-- Enterprise Control Panel -->
     <div id="enterprise-control">
+        <button id="identity-btn" class="control-btn" onclick="window.identityManager.handleAuthAction()">🔑 Link Identity</button>
         <button class="control-btn" onclick="toggleDepartmentPanel()">📊 Departments</button>
         <button class="control-btn" onclick="toggleNeuralChat()">💬 Neural Link</button>
         <button class="control-btn" onclick="initiateStrategyMeeting()">🤖 Strategy Hive</button>
@@ -933,6 +943,77 @@
         }
 
         // ==========================================
+        // IDENTITY MANAGEMENT (OAuth 2.0)
+        // ==========================================
+        class IdentityManager {
+            constructor() {
+                this.btn = document.getElementById('identity-btn');
+                this.isAuthenticated = false;
+                this.user = null;
+                this.checkStatus();
+            }
+
+            async checkStatus() {
+                try {
+                    const response = await fetch('/auth/me');
+                    if (response.status === 200) {
+                        const data = await response.json();
+                        if (data.authenticated) {
+                            this.setAuthenticated(data.user);
+                        } else {
+                            this.setUnauthenticated();
+                        }
+                    } else {
+                        this.setUnauthenticated();
+                    }
+                } catch (e) {
+                    console.error("Auth Check Failed", e);
+                    this.setUnauthenticated();
+                }
+            }
+
+            setAuthenticated(user) {
+                this.isAuthenticated = true;
+                this.user = user;
+                this.btn.classList.add('linked');
+                // Use first name or email
+                const name = user.name ? user.name.split(' ')[0] : (user.email ? user.email.split('@')[0] : 'User');
+                this.btn.textContent = `🔒 ${name}`;
+
+                if (window.voiceModule && !window.hasWelcomedUser) {
+                    window.hasWelcomedUser = true;
+                    window.voiceModule.speak(`Identity confirmed. Welcome back, ${name}. Access granted to secure neural channels.`);
+                }
+            }
+
+            setUnauthenticated() {
+                this.isAuthenticated = false;
+                this.user = null;
+                this.btn.classList.remove('linked');
+                this.btn.textContent = `🔑 Link Identity`;
+            }
+
+            async handleAuthAction() {
+                if (this.isAuthenticated) {
+                    // Confirm Logout
+                    if (confirm("Disconnect neural link and terminate session?")) {
+                        try {
+                            const res = await fetch('/auth/logout', { method: 'POST' });
+                            if (res.ok) {
+                                window.location.reload();
+                            }
+                        } catch (e) {
+                            console.error("Logout failed", e);
+                        }
+                    }
+                } else {
+                    // Login
+                    window.location.href = '/auth/login';
+                }
+            }
+        }
+
+        // ==========================================
         // NEURAL CHAT SYSTEM
         // ==========================================
         class NeuralChat {
@@ -1135,6 +1216,7 @@
             window.voiceModule = voiceModule;
             window.genesisCore = new AetheriumGenesisCore();
             window.neuralChat = new NeuralChat();
+            window.identityManager = new IdentityManager();
 
             // Share WebSocket connection
             window.genesisCore.ws = system.ws;

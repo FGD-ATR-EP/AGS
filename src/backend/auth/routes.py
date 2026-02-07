@@ -148,15 +148,15 @@ def get_me(request: Request):
         "logenesis_state": session.logenesis_state.model_dump()
     }
 
-@router.get("/logout")
+@router.post("/logout")
 def logout():
     """Logs out the user.
 
-    Clears the session cookie and redirects to the root.
+    Clears the session cookie.
 
     Returns:
-        A RedirectResponse to the root URL.
+        A JSONResponse indicating success.
     """
-    response = RedirectResponse(url="/")
+    response = JSONResponse(content={"message": "Logged out"})
     response.delete_cookie(COOKIE_NAME)
     return response
