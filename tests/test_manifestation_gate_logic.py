@@ -1,14 +1,28 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from src.backend.genesis_core.logenesis.engine import LogenesisEngine
-from src.backend.genesis_core.logenesis.visual_schemas import VisualParameters, IntentCategory, BaseShape, VisualSpecifics
+from src.backend.genesis_core.models.visual import VisualParameters, IntentCategory, BaseShape, VisualSpecifics
+
+def setup_engine():
+    engine = LogenesisEngine()
+    # Bypass physics
+    engine._calculate_coherence = MagicMock(return_value=1.0)
+    # Mock Lifecycle (generic valid response)
+    mock_resp = MagicMock()
+    mock_resp.intent_type = "COGNITIVE_RESPONSE"
+    mock_resp.payload.content = {
+        "text_content": "Response",
+        "temporal_state": {"phase": "MANIFESTING", "stability": 1.0},
+        "cognitive": {"effort": 0.5, "uncertainty": 0.0},
+        "intent": {"category": "CHIT_CHAT", "purity": 1.0}
+    }
+    engine.lifecycle.process_request = AsyncMock(return_value=mock_resp)
+    return engine
 
 @pytest.mark.asyncio
 async def test_manifestation_gate_command():
-    engine = LogenesisEngine()
-    engine.interpreter = MagicMock()
+    engine = setup_engine()
 
-    # Mock interpreter return
     vp = VisualParameters(
         intent_category=IntentCategory.COMMAND,
         emotional_valence=0.0,
@@ -21,7 +35,7 @@ async def test_manifestation_gate_command():
             color_palette="#FFFFFF"
         )
     )
-    engine.interpreter.interpret = AsyncMock(return_value=vp)
+    engine.adapter.translate = MagicMock(return_value=vp)
 
     response = await engine.process("command")
     assert response.manifestation_granted is True
@@ -29,8 +43,7 @@ async def test_manifestation_gate_command():
 
 @pytest.mark.asyncio
 async def test_manifestation_gate_chat_low_energy():
-    engine = LogenesisEngine()
-    engine.interpreter = MagicMock()
+    engine = setup_engine()
 
     vp = VisualParameters(
         intent_category=IntentCategory.CHAT,
@@ -44,7 +57,7 @@ async def test_manifestation_gate_chat_low_energy():
             color_palette="#FFFFFF"
         )
     )
-    engine.interpreter.interpret = AsyncMock(return_value=vp)
+    engine.adapter.translate = MagicMock(return_value=vp)
 
     response = await engine.process("chat")
     assert response.manifestation_granted is False
@@ -52,8 +65,7 @@ async def test_manifestation_gate_chat_low_energy():
 
 @pytest.mark.asyncio
 async def test_manifestation_gate_chat_high_energy():
-    engine = LogenesisEngine()
-    engine.interpreter = MagicMock()
+    engine = setup_engine()
 
     vp = VisualParameters(
         intent_category=IntentCategory.CHAT,
@@ -67,7 +79,7 @@ async def test_manifestation_gate_chat_high_energy():
             color_palette="#FFFFFF"
         )
     )
-    engine.interpreter.interpret = AsyncMock(return_value=vp)
+    engine.adapter.translate = MagicMock(return_value=vp)
 
     response = await engine.process("chat")
     assert response.manifestation_granted is True
@@ -75,8 +87,7 @@ async def test_manifestation_gate_chat_high_energy():
 
 @pytest.mark.asyncio
 async def test_manifestation_gate_chat_high_emotion():
-    engine = LogenesisEngine()
-    engine.interpreter = MagicMock()
+    engine = setup_engine()
 
     vp = VisualParameters(
         intent_category=IntentCategory.CHAT,
@@ -90,15 +101,14 @@ async def test_manifestation_gate_chat_high_emotion():
             color_palette="#FFFFFF"
         )
     )
-    engine.interpreter.interpret = AsyncMock(return_value=vp)
+    engine.adapter.translate = MagicMock(return_value=vp)
 
     response = await engine.process("chat")
     assert response.manifestation_granted is True
 
 @pytest.mark.asyncio
 async def test_manifestation_gate_chat_high_turbulence():
-    engine = LogenesisEngine()
-    engine.interpreter = MagicMock()
+    engine = setup_engine()
 
     vp = VisualParameters(
         intent_category=IntentCategory.CHAT,
@@ -112,7 +122,7 @@ async def test_manifestation_gate_chat_high_turbulence():
             color_palette="#FFFFFF"
         )
     )
-    engine.interpreter.interpret = AsyncMock(return_value=vp)
+    engine.adapter.translate = MagicMock(return_value=vp)
 
     response = await engine.process("chat")
     assert response.manifestation_granted is True

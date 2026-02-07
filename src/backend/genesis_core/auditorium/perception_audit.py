@@ -1,6 +1,6 @@
 import logging
 import time
-from src.backend.core.perception.chromatic_interface import ChromaticSanctum
+from src.backend.departments.design.perception.chromatic_interface import ChromaticSanctum
 
 logger = logging.getLogger("ChromaticSanctumAuditor")
 

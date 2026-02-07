@@ -1,14 +1,17 @@
 import pytest
 from unittest.mock import MagicMock, AsyncMock
 from src.backend.genesis_core.logenesis.engine import LogenesisEngine
-from src.backend.departments.presentation.light_schemas import LightAction
-from src.backend.genesis_core.logenesis.schemas import IntentPacket
-from src.backend.genesis_core.logenesis.visual_schemas import VisualParameters, IntentCategory, BaseShape, VisualSpecifics
+from src.backend.genesis_core.models.light import LightAction
+from src.backend.genesis_core.models.logenesis import IntentPacket
+from src.backend.genesis_core.models.visual import VisualParameters, IntentCategory, BaseShape, VisualSpecifics
 
 # --- Fixtures ---
 @pytest.fixture
 def engine():
-    return LogenesisEngine()
+    eng = LogenesisEngine()
+    # Bypass physics coherence checks for these tests to focus on the gate logic
+    eng._calculate_coherence = MagicMock(return_value=1.0)
+    return eng
 
 # --- Tests ---
 
@@ -17,9 +20,16 @@ async def test_explicit_command_bypass(engine):
     """
     Verify that explicit commands trigger manifestation regardless of energy.
     """
-    # Mock the interpreter to return a COMMAND intent
-    mock_contract = MagicMock()
-    mock_contract.text_content = "Executing command."
+    # Mock Lifecycle Response
+    mock_response_intent = MagicMock()
+    mock_response_intent.intent_type = "COGNITIVE_RESPONSE"
+    mock_response_intent.payload.content = {
+        "text_content": "Executing command.",
+        "temporal_state": {"phase": "MANIFESTING", "stability": 1.0},
+        "cognitive": {"effort": 0.1, "uncertainty": 0.0},
+        "intent": {"category": "SYSTEM_OPS", "purity": 1.0}
+    }
+    engine.lifecycle.process_request = AsyncMock(return_value=mock_response_intent)
 
     # Mock Adapter to return VisualParams for a Command
     engine.adapter.translate = MagicMock(return_value=VisualParameters(
@@ -35,9 +45,6 @@ async def test_explicit_command_bypass(engine):
         )
     ))
 
-    # Must mock interpreter.interpret to return our contract
-    engine.interpreter.interpret = AsyncMock(return_value=mock_contract)
-
     response = await engine.process("Make a circle")
 
     assert response.manifestation_granted is True
@@ -49,6 +56,17 @@ async def test_neutral_conversation_blocked(engine):
     """
     Verify that low-intensity conversation does NOT trigger manifestation.
     """
+    # Mock Lifecycle Response
+    mock_response_intent = MagicMock()
+    mock_response_intent.intent_type = "COGNITIVE_RESPONSE"
+    mock_response_intent.payload.content = {
+        "text_content": "Just chatting.",
+        "temporal_state": {"phase": "LISTENING", "stability": 1.0},
+        "cognitive": {"effort": 0.1, "uncertainty": 0.0},
+        "intent": {"category": "CHIT_CHAT", "purity": 1.0}
+    }
+    engine.lifecycle.process_request = AsyncMock(return_value=mock_response_intent)
+
     # Mock Adapter to return Low Energy CHAT
     engine.adapter.translate = MagicMock(return_value=VisualParameters(
         intent_category=IntentCategory.CHAT,
@@ -57,7 +75,6 @@ async def test_neutral_conversation_blocked(engine):
         semantic_concepts=[],
         visual_parameters=VisualSpecifics(base_shape=BaseShape.CLOUD, turbulence=0.1, particle_density=0.1, color_palette="#FFFFFF")
     ))
-    engine.interpreter.interpret = AsyncMock(return_value=MagicMock(text_content="Just chatting."))
 
     response = await engine.process("Hello, how are you?")
 
@@ -70,6 +87,17 @@ async def test_high_intensity_manifestation(engine):
     """
     Verify that HIGH intensity conversation triggers manifestation.
     """
+    # Mock Lifecycle Response
+    mock_response_intent = MagicMock()
+    mock_response_intent.intent_type = "COGNITIVE_RESPONSE"
+    mock_response_intent.payload.content = {
+        "text_content": "I am angry!",
+        "temporal_state": {"phase": "MANIFESTING", "stability": 1.0},
+        "cognitive": {"effort": 0.8, "uncertainty": 0.0},
+        "intent": {"category": "CREATIVE", "purity": 1.0}
+    }
+    engine.lifecycle.process_request = AsyncMock(return_value=mock_response_intent)
+
     # Mock Adapter to return High Energy CHAT
     engine.adapter.translate = MagicMock(return_value=VisualParameters(
         intent_category=IntentCategory.CHAT,
@@ -78,7 +106,6 @@ async def test_high_intensity_manifestation(engine):
         semantic_concepts=[],
         visual_parameters=VisualSpecifics(base_shape=BaseShape.VORTEX, turbulence=0.8, particle_density=0.8, color_palette="#FF0000")
     ))
-    engine.interpreter.interpret = AsyncMock(return_value=MagicMock(text_content="I am angry!"))
 
     response = await engine.process("I feel intense emotion!")
 
@@ -93,6 +120,17 @@ async def test_manifestation_gate_precision(engine):
     Logic: If intent is CHAT but implies deep analysis (high density/energy), it might manifest.
     But strictly, LogenesisEngine._check_manifestation_gate checks energy, valence, turbulence.
     """
+    # Mock Lifecycle Response
+    mock_response_intent = MagicMock()
+    mock_response_intent.intent_type = "COGNITIVE_RESPONSE"
+    mock_response_intent.payload.content = {
+        "text_content": "Analyzing data.",
+        "temporal_state": {"phase": "THINKING", "stability": 1.0},
+        "cognitive": {"effort": 0.8, "uncertainty": 0.0},
+        "intent": {"category": "ANALYTIC", "purity": 1.0}
+    }
+    engine.lifecycle.process_request = AsyncMock(return_value=mock_response_intent)
+
     # Mock Adapter for Analysis
     engine.adapter.translate = MagicMock(return_value=VisualParameters(
         intent_category=IntentCategory.CHAT,
@@ -106,7 +144,6 @@ async def test_manifestation_gate_precision(engine):
             color_palette="#0000FF"
         )
     ))
-    engine.interpreter.interpret = AsyncMock(return_value=MagicMock(text_content="Analyzing data."))
 
     response = await engine.process("Analyze the code.")
 
