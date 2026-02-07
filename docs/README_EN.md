@@ -203,6 +203,7 @@ Distinct roles.
 *   [**LIGHT PROTOCOL**](../LIGHT_PROTOCOL.md): Specification of light signals.
 *   [**AGENTS_GUIDE.md**](../AGENTS_GUIDE.md): Instructions for AI agents working on this codebase.
 *   [**CONCEPT_SHEET.md**](CONCEPT_SHEET.md): Conceptual Contract & Definition.
+*   [**VASA_1_RESEARCH_SUMMARY.md**](VASA_1_RESEARCH_SUMMARY.md): Research note summarizing the VASA-1 talking-face generation paper.
 
 ---
 
