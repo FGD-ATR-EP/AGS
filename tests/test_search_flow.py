@@ -7,6 +7,10 @@ from unittest.mock import patch, MagicMock
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
 from src.backend.genesis_core.logenesis.lightweight_ai import LightweightAI
+from backend.core.search_schemas import SearchIntent
+from backend.core.google_search_provider import GoogleSearchProvider
+from backend.core.lcl import LightControlLogic
+from backend.core.light_schemas import LightIntent, LightAction
 from src.backend.genesis_core.models.search import SearchIntent
 from src.backend.departments.marketing.google_search_provider import GoogleSearchProvider
 from src.backend.departments.presentation.lcl import LightControlLogic

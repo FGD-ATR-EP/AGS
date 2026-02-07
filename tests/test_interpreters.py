@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 from src.backend.genesis_core.logenesis.simulated_interpreter import SimulatedIntentInterpreter
-from src.backend.genesis_core.logenesis.visual_schemas import IntentCategory, BaseShape
+from src.backend.genesis_core.models.visual import IntentCategory, BaseShape
 
 @pytest.mark.asyncio
 async def test_simulated_interpreter_logic():

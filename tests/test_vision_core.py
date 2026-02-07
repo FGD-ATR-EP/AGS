@@ -10,8 +10,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.backend.departments.design.chromatic.aetherium_vision_core import AetheriumVisionCore, AetherState, AetherOutput
 from src.backend.genesis_core.logenesis.engine import LogenesisEngine
-from src.backend.genesis_core.logenesis.schemas import IntentPacket
-from src.backend.genesis_core.logenesis.visual_schemas import BaseShape, VisualParameters
+from src.backend.genesis_core.models.logenesis import IntentPacket
+from src.backend.genesis_core.models.visual import BaseShape, VisualParameters
 
 class TestVisionCore:
     def test_vision_core_forward(self):

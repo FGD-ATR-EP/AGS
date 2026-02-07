@@ -45,4 +45,4 @@ GENESIS::OMNI_STATE_MANIFEST
   - `src/frontend` (Visuals)
 
 [GENESIS NOTE]
-“The system is alive, but it must decide whether to grow or to remember who it is.”
+“The system is alive, and it remembers who it is.”

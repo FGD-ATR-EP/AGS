@@ -1,7 +1,7 @@
 import pytest
 import math
 from src.backend.genesis_core.logenesis.engine import LogenesisEngine
-from src.backend.genesis_core.logenesis.schemas import IntentVector, LogenesisState, ExpressionState, IntentPacket
+from src.backend.genesis_core.models.logenesis import IntentVector, LogenesisState, ExpressionState, IntentPacket
 
 @pytest.fixture
 def engine():

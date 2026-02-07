@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from src.backend.genesis_core.logenesis.visual_schemas import (
+from src.backend.genesis_core.models.visual import (
     EmbodimentContract, TemporalState, CognitiveMetadata, IntentData,
     TemporalPhase, ContractIntentCategory, VisualParameters, BaseShape
 )

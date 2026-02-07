@@ -2,7 +2,7 @@ import pytest
 import asyncio
 from unittest.mock import patch, MagicMock
 from src.backend.genesis_core.logenesis.engine import LogenesisEngine
-from src.backend.genesis_core.logenesis.schemas import LogenesisResponse, IntentVector, ExpressionState
+from src.backend.genesis_core.models.logenesis import LogenesisResponse, IntentVector, ExpressionState
 
 @pytest.mark.asyncio
 async def test_reasoned_response_subjective():
