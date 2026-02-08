@@ -34,14 +34,6 @@ class JournalEntry:
 
 
 def _load_entries(path: Path) -> List[JournalEntry]:
-    """Load journal entries from disk.
-
-    Args:
-        path: Location of the JSON journal file.
-
-    Returns:
-        A list of journal entries. Returns an empty list when the file is missing.
-    """
     if not path.exists():
         return []
     raw_entries = json.loads(path.read_text(encoding="utf-8"))
@@ -79,16 +71,6 @@ def _generate_entry_id(entries: List[JournalEntry]) -> str:
 
 
 def add_entry(title: str, content: str, path: Path = DATA_FILE) -> JournalEntry:
-    """Create a new journal entry and save it to the journal file.
-
-    Args:
-        title: Short title for the entry.
-        content: Full content for the entry.
-        path: Location of the JSON journal file.
-
-    Returns:
-        The newly created journal entry.
-    """
     entries = _load_entries(path)
     entry = JournalEntry(
         entry_id=_generate_entry_id(entries),
@@ -102,15 +84,6 @@ def add_entry(title: str, content: str, path: Path = DATA_FILE) -> JournalEntry:
 
 
 def list_entries(limit: int, path: Path = DATA_FILE) -> List[JournalEntry]:
-    """Return recent journal entries, newest first, honoring the limit.
-
-    Args:
-        limit: Maximum number of entries to return. Use 0 for all entries.
-        path: Location of the JSON journal file.
-
-    Returns:
-        A list of journal entries ordered newest to oldest.
-    """
     entries = _load_entries(path)
     return list(reversed(entries[-limit:])) if limit > 0 else list(reversed(entries))
 
