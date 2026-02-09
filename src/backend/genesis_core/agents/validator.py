@@ -19,7 +19,7 @@ class ValidatorAgent:
     def load_rules(self):
         """Loads the inviolable governance rules from disk."""
         if not os.path.exists(self.ruleset_path):
-            logger.error(f"Ruleset not found at {self.ruleset_path}. enforcing default strict mode.")
+            logger.error(f"Ruleset not found at {self.ruleset_path}. Enforcing default strict mode.")
             self.rules = {"principles": []}
             return
 

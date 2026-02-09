@@ -47,7 +47,7 @@
 
 ### 1. การเตรียมสภาพแวดล้อม
 ```bash
-# ติดตั้ง Library ที่จำเป็น
+# ติดตั้งไลบรารีที่จำเป็น
 pip install -r requirements.txt
 
 # ตั้งค่า PYTHONPATH
@@ -72,6 +72,22 @@ python -m uvicorn src.backend.main:app --host 0.0.0.0 --port 8000
 - **Product UI**: `http://localhost:8000`
 - **Developer Dashboard**: `http://localhost:8000/dashboard`
 - **API Docs**: `http://localhost:8000/docs`
+
+### 3. การตรวจสอบอย่างรวดเร็ว (Quick Checks)
+```bash
+# รันทดสอบเฉพาะโมดูลการยืนยันตัวตน
+pytest -q tests/test_auth_flow.py
+
+# รันทดสอบโมดูลสกัดพื้นที่ภาพ
+pytest -q tests/test_region_extractor.py
+```
+
+> หมายเหตุ: ชุดทดสอบทั้งระบบ (`pytest -q`) อาจล้มเหลวในบาง environment ที่ยังไม่ได้ติดตั้ง dependency เฉพาะทาง (เช่น torch) หรือมี import path ของโมดูล legacy ที่ยังไม่ถูกย้ายครบ
+
+### 4. แนวทางต่อยอดเชิงสร้างสรรค์ (Creative Extension Ideas)
+- เพิ่ม `pre-commit` pipeline (ruff + pytest subset + docs lint) เพื่อจับ regression ตั้งแต่ก่อน commit
+- สร้าง “Challenge Mode” โดยสุ่มเหตุการณ์ผิดปกติ (fault injection) ให้ Resonators ฝึกการตัดสินใจภายใต้ความไม่แน่นอน
+- เพิ่ม benchmark แบบ scenario-based เพื่อวัดทั้ง latency, stability และ quality score ในรอบเดียว
 
 ---
 

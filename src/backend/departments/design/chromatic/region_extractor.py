@@ -1,7 +1,6 @@
 import torch
-import torch.nn.functional as F
 from typing import Tuple
-from .correction_schemas import SpatialMask
+from src.backend.genesis_core.logenesis.correction_schemas import SpatialMask
 
 class RegionExtractor:
     def __init__(self, frame_shape: Tuple[int, int, int]):

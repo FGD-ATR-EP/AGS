@@ -20,7 +20,7 @@ def test_merge():
     # Blend is horizontal. Center should have some weight.
     # mask 10 to 20. Width 10.
     # blend goes 0 to 1 across x.
-    # At x=15 (rel to frame 0), blend ~0.5.
+    # At x=15 (relative to frame index 0), blend is ~0.5.
     # updated=1, full=0. result = 0*(0.5) + 1*0.5 = 0.5.
     assert result[0, 15, 15] > 0.0
 
@@ -37,3 +37,12 @@ def test_validate():
     # If x_max = 101, invalid.
     assert extractor.validate(SpatialMask(0, 0, 100, 100))
     assert not extractor.validate(SpatialMask(0, 0, 101, 10))
+
+
+def test_extract_raises_on_out_of_bounds_mask():
+    frame = torch.randn(3, 100, 100)
+    extractor = RegionExtractor((100, 100, 3))
+    invalid_mask = SpatialMask(90, 90, 110, 110)
+
+    with pytest.raises(ValueError, match="Mask out of bounds"):
+        extractor.extract(frame, invalid_mask)
