@@ -1,13 +1,33 @@
 from fastapi.testclient import TestClient
 from src.backend.main import app
+from src.backend.security.key_manager import KeyTier
 import json
 import time
 
 def test_aetherium_flow():
     # Trigger Startup Events
     with TestClient(app) as client:
+        # Inject an internal key for testing
+        km = app.state.key_manager
+        abe_id = "test-abe-id"
+        test_key = km.create_key(abe_id=abe_id, tier=KeyTier.INTERNAL, label="Test Key")
+
+        contract_data = {
+            "identity": {
+                "abe_id": abe_id,
+                "entity_name": "Test Client"
+            },
+            "intent": {
+                "primary_intent": "OBSERVER"
+            }
+        }
+
         # 1. Control Plane
-        response = client.post("/v1/session", json={"client": "test_script"})
+        response = client.post("/v1/session", json={
+            "client": "test_script",
+            "access_key": test_key,
+            "abe_contract": contract_data
+        })
         assert response.status_code == 200
         data = response.json()
         assert "session_id" in data
@@ -28,13 +48,8 @@ def test_aetherium_flow():
             # Expect Stream
             received_types = []
 
-            # We assume the background task runs.
-            # In TestClient, asyncio background tasks created by `create_task` inside the request handler
-            # MIGHT run if the loop yields. `receive_json` yields.
-
-            for _ in range(5): # Safety limit
+            for _ in range(10): # Increased safety limit
                 try:
-                    # Give it a bit of time logic? No, receive_json blocks.
                     msg = websocket.receive_json()
                     received_types.append(msg["type"])
                     print(f"Received: {msg['type']}")

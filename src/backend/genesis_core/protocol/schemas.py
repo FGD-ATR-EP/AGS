@@ -80,6 +80,7 @@ class AetherEvent(BaseModel):
     manifestation: Optional[ManifestationData] = None
     intent: Optional[IntentData] = None
     error: Optional[str] = None
+    extensions: Dict[str, Any] = Field(default_factory=dict)
 
     class Config:
         use_enum_values = True
