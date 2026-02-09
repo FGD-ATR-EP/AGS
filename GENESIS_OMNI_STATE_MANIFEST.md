@@ -6,15 +6,15 @@ GENESIS::OMNI_STATE_MANIFEST
   - src/frontend        : ACTIVE (Living Interface)
   - legacy              : ARCHIVED (Consolidated)
 - Orphan Components     : FOUND (2)
-  - src/backend/private/advanced_diffusion.py : UNUSED (Heavy dependency)
-  - src/backend/main.py::websocket_v2_endpoint : DEPRECATED (Active but redundant)
-- Redundant Concepts    : NONE (Functional Split)
-  - Javana Reflex Kernel (Fast) vs LogenesisEngine (Deep) : DISTINCT
+  - src/backend/private/advanced_diffusion.py : BROKEN (Missing dependencies: `src/backend/core/region_extractor.py`)
+  - src/backend/main.py::websocket_v2_endpoint : DEPRECATED (Dual Protocol Risk)
+- Redundant Concepts    : FOUND (1)
+  - Dual WebSocket Protocols (/ws vs /ws/v2/stream) in `main.py`.
 
 [CONCEPTUAL LAYER]
 - Core Philosophy       : COHERENT
   - "Light as Intent" principle strictly enforced via Embodiment Contracts.
-- Naming Consistency    : STABLE (Minor Outlier)
+- Naming Consistency    : STABLE
   - `javana_core` (Reflex) vs `genesis_core` (Cognition). Consistent within domains.
 - Undefined Semantics   : NONE
 
@@ -27,8 +27,8 @@ GENESIS::OMNI_STATE_MANIFEST
 - Dormant Designs       :
   - Advanced Diffusion (Image Correction) -> src/backend/private/advanced_diffusion.py
 - Abandoned Threads     :
-  - gun_ui_integration (Legacy)
-  - ai_utils_package (Legacy)
+  - legacy/gun_ui_integration
+  - legacy/ai_utils_package
 
 [RISKS]
 - Structural Risk       : LOW
@@ -36,7 +36,7 @@ GENESIS::OMNI_STATE_MANIFEST
 - Semantic Drift Risk   : MEDIUM
   - Dual WebSocket protocols in `main.py` (V2 vs Legacy/Actuator) creates potential for state desync or developer confusion.
 - Future Bug Vectors    : LOW
-  - Unused `torch` dependency in `advanced_diffusion.py` may cause bloat/issues.
+  - Unused `torch` dependency in `advanced_diffusion.py` adds unnecessary weight and maintenance burden.
 
 [RECOMMENDATION]
 - Freeze Expansion      : NO
