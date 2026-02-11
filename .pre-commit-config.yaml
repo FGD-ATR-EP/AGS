@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.10
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: pytest-subset
+        name: pytest subset (core regression)
+        entry: pytest -q tests/test_auth_flow.py tests/test_challenge_mode.py tests/test_scenario_benchmark.py
+        language: system
+        pass_filenames: false
+
+      - id: docs-lint
+        name: docs lint (markdown structural checks)
+        entry: python scripts/lint_docs.py
+        language: system
+        pass_filenames: false

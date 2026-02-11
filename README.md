@@ -84,10 +84,16 @@ pytest -q tests/test_region_extractor.py
 
 > หมายเหตุ: ชุดทดสอบทั้งระบบ (`pytest -q`) อาจล้มเหลวในบาง environment ที่ยังไม่ได้ติดตั้ง dependency เฉพาะทาง (เช่น torch) หรือมี import path ของโมดูล legacy ที่ยังไม่ถูกย้ายครบ
 
-### 4. แนวทางต่อยอดเชิงสร้างสรรค์ (Creative Extension Ideas)
-- เพิ่ม `pre-commit` pipeline (ruff + pytest subset + docs lint) เพื่อจับ regression ตั้งแต่ก่อน commit
-- สร้าง “Challenge Mode” โดยสุ่มเหตุการณ์ผิดปกติ (fault injection) ให้ Resonators ฝึกการตัดสินใจภายใต้ความไม่แน่นอน
-- เพิ่ม benchmark แบบ scenario-based เพื่อวัดทั้ง latency, stability และ quality score ในรอบเดียว
+### 4. Quality Gates + Challenge + Benchmark (อัปเดตล่าสุด)
+- `pre-commit` พร้อมใช้งานผ่าน `.pre-commit-config.yaml` ครอบคลุม `ruff`, `ruff-format`, `pytest subset`, และ `docs lint` (`python scripts/lint_docs.py`)
+- เปิด **Challenge Mode** ได้ด้วย env: `CHALLENGE_MODE_ENABLED=true` (ปรับความเข้มด้วย `CHALLENGE_MODE_INTENSITY`) เพื่อสุ่ม fault injection ระหว่างการประมวลผลของ Resonators
+- เพิ่ม benchmark แบบ scenario-based ใน `src/backend/genesis_core/benchmark/scenario.py` เพื่อสรุปผลรอบเดียว: `latency_p95_ms`, `stability_avg`, `quality_avg` (รูบริกเดียว: confidence/freshness/completeness)
+
+ตัวอย่างการใช้งาน:
+```bash
+pre-commit run --all-files
+pytest -q tests/test_challenge_mode.py tests/test_scenario_benchmark.py
+```
 
 ---
 

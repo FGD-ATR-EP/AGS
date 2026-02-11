@@ -20,6 +20,7 @@ from src.backend.genesis_core.models.intent import SystemIntent, IntentPayload, 
 # New Imports
 from src.backend.genesis_core.models.visual import VisualParameters, IntentCategory, BaseShape, VisualSpecifics, EmbodimentContract
 from .embodiment import EmbodimentAdapter
+from .challenge_mode import FaultInjector
 from src.backend.core.config import settings
 
 logger = logging.getLogger("LogenesisEngine")
@@ -117,6 +118,11 @@ class LogenesisEngine:
 
         # Lifecycle Manager (The K3s Simulator)
         self.lifecycle = LifecycleManager()
+        self.fault_injector = FaultInjector(
+            enabled=settings.CHALLENGE_MODE_ENABLED,
+            intensity=settings.CHALLENGE_MODE_INTENSITY,
+            seed=settings.CHALLENGE_MODE_SEED,
+        )
 
     async def startup(self):
         """Initializes the distributed agent system."""
@@ -232,6 +238,8 @@ class LogenesisEngine:
         # 2. Physics of Thought (Entropy & Coherence)
         current_state = self.state_store.get_state(session_id)
 
+        input_intent, challenge_event = self.fault_injector.inject(input_intent)
+
         # 2a. Calculate Entropy & Apply Homeostasis (Level 1 Correction)
         raw_entropy = self._calculate_entropy(input_intent)
         structural_stability = 1.0 - raw_entropy
@@ -315,6 +323,9 @@ class LogenesisEngine:
                 response_text = self._synthesize_text(drifted_vector, input_intent, recalled_context)
                 if coherence < 0.5:
                     response_text = f"[Unstable] {response_text}"
+
+        if challenge_event:
+            response_text = f"[Challenge:{challenge_event.fault_type.value}] {response_text}"
 
         return LogenesisResponse(
             state=self.state,
