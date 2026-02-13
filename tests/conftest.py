@@ -17,7 +17,18 @@ def mock_module(module_name):
     return sys.modules[module_name]
 
 # Mock heavy dependencies
-mock_module("torch")
+# NOTE: We do NOT mock torch by default anymore because it causes MagicMock vs float errors
+# in tests that actually need tensors. If an environment has torch, let it use it.
+# If not, the specific test needing it should handle the ImportWarning or mock it locally.
+# However, if CI environment has torch, mocking it here breaks everything.
+
+# Check if torch is installed before mocking
+try:
+    import torch
+except ImportError:
+    mock_module("torch")
+    sys.modules["torch"].Tensor = MagicMock
+
 mock_module("google")
 mock_module("google.generativeai")
 mock_module("google.generativeai.types")
@@ -26,6 +37,3 @@ mock_module("transformers")
 mock_module("accelerate")
 mock_module("PIL")
 mock_module("PIL.Image")
-
-# Mock classes often used in type hints
-sys.modules["torch"].Tensor = MagicMock

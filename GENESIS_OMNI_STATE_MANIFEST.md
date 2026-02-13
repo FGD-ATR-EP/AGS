@@ -4,12 +4,13 @@ GENESIS::OMNI_STATE_MANIFEST
 - Declared Modules      : OK
   - src/backend         : ACTIVE (Core Logic & Server)
   - src/frontend        : ACTIVE (Living Interface)
-  - legacy              : ARCHIVED (Consolidated)
+  - legacy              : MERGED (Consolidated into active modules)
 - Orphan Components     : FOUND (2)
-  - src/backend/private/advanced_diffusion.py : BROKEN (Missing dependencies: `src/backend/core/region_extractor.py`)
-  - src/backend/main.py::websocket_v2_endpoint : DEPRECATED (Dual Protocol Risk)
-- Redundant Concepts    : FOUND (1)
-  - Dual WebSocket Protocols (/ws vs /ws/v2/stream) in `main.py`.
+  - src/backend/departments/development/javana_core : DORMANT (Used only in deprecated V2 path)
+  - src/backend/main.py::websocket_v2_endpoint : DEPRECATED (Zombie Protocol - Should be removed)
+- Redundant Concepts    : FOUND (2)
+  - Dual Cognitive Paths (LogenesisEngine vs JavanaKernel)
+  - Zombie WebSocket Protocol (/ws/v2/stream) still present in main.py despite deprecation.
 
 [CONCEPTUAL LAYER]
 - Core Philosophy       : COHERENT
@@ -21,28 +22,26 @@ GENESIS::OMNI_STATE_MANIFEST
 [CURRENT REALITY]
 - Active Capabilities   :
   - LogenesisEngine (Cognitive Loop)
-  - Javana Reflex Kernel (Immediate Response)
-  - Aetherium Frontend (Root Interface)
-  - Legacy Actuator UI (GunUI via /gunui)
+  - Aetherium V3 Stream (Data Plane)
+  - Frontend (Visual Manifestation)
 - Dormant Designs       :
-  - Advanced Diffusion (Image Correction) -> src/backend/private/advanced_diffusion.py
+  - Javana Reflex Kernel (Accessible only via deprecated V2 endpoint)
 - Abandoned Threads     :
-  - legacy/gun_ui_integration
-  - legacy/ai_utils_package
+  - src/backend/private/advanced_diffusion.py (CLEANED)
 
 [RISKS]
-- Structural Risk       : LOW
-  - Clean separation of concerns between `genesis_core` and `departments`.
-- Semantic Drift Risk   : MEDIUM
-  - Dual WebSocket protocols in `main.py` (V2 vs Legacy/Actuator) creates potential for state desync or developer confusion.
+- Structural Risk       : MEDIUM
+  - JavanaKernel bypasses the primary cognitive loop (LogenesisEngine), creating a shadow logic path.
+- Semantic Drift Risk   : HIGH
+  - Presence of /ws/v2/stream in `main.py` contradicts system memory of removal, creating confusion about the active protocol.
 - Future Bug Vectors    : LOW
-  - Unused `torch` dependency in `advanced_diffusion.py` adds unnecessary weight and maintenance burden.
+  - Unused dependencies in `javana_core` might age poorly.
 
 [RECOMMENDATION]
 - Freeze Expansion      : NO
 - Refactor Priority     :
-  - Remove `src/backend/private/advanced_diffusion.py`.
-  - Consolidate WebSocket protocols in `main.py` to a single Aetherium Standard.
+  - Delete `src/backend/main.py::websocket_v2_endpoint` immediately to resolve semantic drift.
+  - Decide on `JavanaKernel`: Integrate into `LogenesisEngine` or remove.
 - Safe Extension Zones  :
   - `src/backend/genesis_core` (Logic)
   - `src/frontend` (Visuals)
