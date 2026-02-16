@@ -1,0 +1,88 @@
+name: Aetherium CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio httpx
+
+      - name: Run Backend Tests
+        run: pytest tests/test_api_deep_flow.py tests/test_permission_audit.py tests/test_health_agent.py
+
+  generate-sdk:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate OpenAPI Spec
+        run: |
+          # Use a script to dump the OpenAPI JSON from FastAPI
+          python3 -c "import json; from src.backend.main import app; print(json.dumps(app.openapi()))" > openapi.json
+
+      - name: Install OpenAPI Generator
+        run: npm install @openapitools/openapi-generator-cli -g
+
+      - name: Generate TypeScript SDK
+        run: |
+          openapi-generator-cli generate -i openapi.json -g typescript-fetch -o clients/typescript
+
+      - name: Generate Python SDK
+        run: |
+          openapi-generator-cli generate -i openapi.json -g python -o clients/python
+
+      - name: Upload SDKs as Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: aetherium-sdks
+          path: clients/
+
+  deploy-infra:
+    needs: generate-sdk
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install CDK
+        run: npm install -g aws-cdk
+
+      - name: Install Infra dependencies
+        run: |
+          pip install aws-cdk-lib constructs
+
+      - name: CDK Synth
+        working-directory: infra
+        run: cdk synth
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "us-east-1"

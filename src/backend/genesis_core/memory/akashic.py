@@ -50,6 +50,49 @@ class AkashicRecords:
 
             return curr_hash
 
+    def get_behavioral_history(self, actor_id: str, limit: int = 50) -> List[Dict]:
+        """ Retrieves the most recent behavioral records for a specific actor. """
+        history = []
+        try:
+            with open(self.db_path, 'r') as f:
+                data = json.load(f)
+            chain = data.get("chain", [])
+
+            # Filter from newest to oldest
+            for block in reversed(chain):
+                payload = block.get("payload", {})
+
+                # Check direct or nested actor info
+                actor = payload.get("actor") or payload.get("origin_agent")
+                if not actor and "audit" in payload:
+                    actor = payload["audit"].get("actor")
+
+                if actor == actor_id:
+                    history.append(block)
+                if len(history) >= limit:
+                    break
+        except Exception:
+            pass
+        return history
+
+    def get_recent_audits(self, limit: int = 20) -> List[Dict]:
+        """ Retrieves the most recent audit logs. """
+        audits = []
+        try:
+            with open(self.db_path, 'r') as f:
+                data = json.load(f)
+            chain = data.get("chain", [])
+
+            for block in reversed(chain):
+                payload = block.get("payload", {})
+                if payload.get("type") == "audit_log" or payload.get("action") == "PERMISSION_CHECK":
+                    audits.append(block)
+                if len(audits) >= limit:
+                    break
+        except Exception:
+            pass
+        return audits
+
     def verify_hash_chain(self) -> bool:
         """Verifies the cryptographic integrity of the local record chain."""
         try:
