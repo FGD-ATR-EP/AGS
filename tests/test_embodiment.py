@@ -61,9 +61,3 @@ async def test_simulated_interpreter():
     # Test "story" keyword -> Creative
     contract = await interpreter.interpret("Tell me a story")
     assert contract.intent.category == ContractIntentCategory.CREATIVE
-
-    # Test reflective/deep context -> Creative with calm high effort
-    contract = await interpreter.interpret("I feel the void and it is sad but true")
-    assert contract.intent.category == ContractIntentCategory.CREATIVE
-    assert contract.cognitive.effort >= 0.95
-    assert "context" in (contract.text_content or "").lower()

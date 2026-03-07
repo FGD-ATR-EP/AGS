@@ -31,7 +31,7 @@ python -m uvicorn src.backend.main:app --reload --host 0.0.0.0 --port 8000
 ---
 
 
-## 2. API & Connectivity
+## 3. API & Connectivity
 For developers wishing to connect directly to the system's "Cognitive Core".
 
 *   **WebSocket Endpoint:** `ws://localhost:8000/ws` and `ws://localhost:8000/ws/v3/stream`

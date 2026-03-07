@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Dict, Any, Union, List
+from typing import Optional, Dict, Any, Union
 from pydantic import BaseModel, Field
 from datetime import datetime
 
@@ -15,11 +15,9 @@ class AetherEventType(str, Enum):
     DEGRADATION = "degradation"           # Error, confusion, entropy increase
     SILENCE = "silence"                   # Idle / Listening
 
-    # Control & Security
+    # Control
     HANDSHAKE = "handshake"
     ERROR = "error"
-    AUDIT_LOG = "audit_log"               # Security and permission audit events
-    HEALTH_SIGNAL = "health_signal"       # System health and scaling metrics
 
 class ResonanceForm(str, Enum):
     SPHERE = "sphere"     # ChitChat / Neutral
@@ -28,93 +26,62 @@ class ResonanceForm(str, Enum):
     GRID = "grid"         # System / Low Energy
     NEBULA = "nebula"     # Ambiguous / Thinking
 
-class AuditSeverity(str, Enum):
-    INFO = "info"
-    WARNING = "warning"
-    CRITICAL = "critical"
-    PARAJIKA = "parajika" # Terminal system violation
-
 # --- Data Models ---
 
 class IntentVector(BaseModel):
     """
-    Mathematical representation of an intent for resonance calculation and visualization.
+    The mathematical representation of an intent.
+    Used for resonance calculation and visualization.
     """
-    clarity: float = Field(..., ge=0.0, le=1.0, description="Semantic clarity (0.0 to 1.0)", examples=[0.9])
-    emotional_valence: float = Field(..., ge=-1.0, le=1.0, description="Sentiment (-1.0 to 1.0)", examples=[0.2])
-    urgency: float = Field(..., ge=0.0, le=1.0, description="Priority (0.0 to 1.0)", examples=[0.5])
-    trust: float = Field(..., ge=0.0, le=1.0, description="Source reliability (0.0 to 1.0)", examples=[1.0])
+    clarity: float = Field(..., ge=0.0, le=1.0, description="How clear the intent is")
+    emotional_valence: float = Field(..., ge=-1.0, le=1.0, description="Positive vs Negative sentiment")
+    urgency: float = Field(..., ge=0.0, le=1.0, description="Priority level")
+    trust: float = Field(..., ge=0.0, le=1.0, description="Source reliability or internal confidence")
 
 class IntentData(BaseModel):
     """
-    Semantic payload of a detected intent.
+    The semantic payload of an intent.
     """
     vector: IntentVector
-    semantic_hint: Optional[str] = Field(None, description="Short label for the intent", examples=["query"])
-    raw_content: Optional[str] = Field(None, description="Original source text", examples=["Hello World"])
+    semantic_hint: Optional[str] = Field(None, description="Short text label (e.g. 'agreement', 'query')")
+    raw_content: Optional[str] = Field(None, description="Original text if applicable (optional)")
 
 class ManifestationData(BaseModel):
     """
-    The crystallized output of the system (The 'Result').
+    The crystallized output of the system.
     """
-    intent: str = Field(..., description="Output category", examples=["answer"])
-    resonance: float = Field(..., ge=0.0, le=1.0, description="Final coherence level")
-    form: ResonanceForm = Field(..., description="Geometric representation form")
-    color: str = Field(..., description="Visual resonance color (Hex)", examples=["#00ffcc"])
-    content: Union[str, Dict[str, Any]] = Field(..., description="The actual response data")
+    intent: str = Field(..., description="Category (e.g., acknowledgement, answer)")
+    resonance: float = Field(..., ge=0.0, le=1.0)
+    form: ResonanceForm
+    color: str = Field(..., description="Hex code or color name")
+    content: Union[str, Dict[str, Any]] = Field(..., description="The actual message/data")
 
 class StateData(BaseModel):
     """
     Internal system state snapshot.
     """
-    state: str = Field(..., description="Operational mode", examples=["thinking"])
+    state: str = Field(..., description="Current operational mode (e.g. 'thinking', 'idle')")
     confidence: float = Field(..., ge=0.0, le=1.0)
     energy: float = Field(..., ge=0.0, le=1.0)
-    coherence: float = Field(..., ge=0.0, le=1.0)
-
-class AuditData(BaseModel):
-    """
-    Security and Governance audit record.
-    """
-    actor: str = Field(..., description="The entity performing the action", examples=["ValidatorAgent"])
-    action: str = Field(..., description="The action being audited", examples=["PERMISSION_CHECK"])
-    target: str = Field(..., description="The resource or agent affected", examples=["AkashicRecords"])
-    severity: AuditSeverity = Field(default=AuditSeverity.INFO)
-    outcome: str = Field(..., description="Success, Denied, or Flagged", examples=["ALLOWED"])
-    reasoning: Optional[str] = Field(None, description="AI-generated justification for the decision")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional context (e.g. risk scores)")
+    coherence: float = Field(..., ge=0.0, le=1.0, description="Internal logic consistency")
 
 # --- The Envelope ---
 
 class AetherEvent(BaseModel):
     """
-    Standard message format for the AetherBus Data Plane.
+    The standard message format for the Aetherium Data Plane.
     """
-    type: AetherEventType = Field(..., description="The category of the event")
-    timestamp: float = Field(default_factory=lambda: datetime.now().timestamp(), description="Unix timestamp")
-    session_id: Optional[str] = Field(None, description="The session or agent ID context")
+    type: AetherEventType
+    timestamp: float = Field(default_factory=lambda: datetime.now().timestamp())
+    session_id: Optional[str] = None
 
-    # Payload fields (optional depending on type)
+    # One of these fields should be populated based on type
     state: Optional[StateData] = None
     manifestation: Optional[ManifestationData] = None
     intent: Optional[IntentData] = None
-    audit: Optional[AuditData] = None
     error: Optional[str] = None
-    extensions: Dict[str, Any] = Field(default_factory=dict, description="Custom metadata for external expansion")
+    extensions: Dict[str, Any] = Field(default_factory=dict)
 
     class Config:
         use_enum_values = True
         extra = "ignore"
-        json_schema_extra = {
-            "example": {
-                "type": "manifestation",
-                "session_id": "ae-789",
-                "manifestation": {
-                    "intent": "greeting",
-                    "resonance": 0.95,
-                    "form": "sphere",
-                    "color": "#06b6d4",
-                    "content": "Hello, Resonator."
-                }
-            }
-        }

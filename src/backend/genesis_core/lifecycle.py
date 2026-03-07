@@ -87,12 +87,6 @@ class LifecycleManager:
         """
         Injects an intent and waits for a response via AetherBus.
         """
-        if not self.running:
-            logger.warning(
-                "Lifecycle is not running; routing request directly to AgioSage fallback."
-            )
-            return await self.agio_sage.process_query(intent)
-
         future = asyncio.get_running_loop().create_future()
         self.pending_requests[intent.vector_id] = future
 

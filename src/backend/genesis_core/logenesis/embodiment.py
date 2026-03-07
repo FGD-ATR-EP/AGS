@@ -12,14 +12,6 @@ class EmbodimentAdapter:
     high-level semantic intent into low-level physics and rendering parameters.
     """
 
-    def _derive_emotional_valence(self, text_content: Optional[str]) -> float:
-        text = (text_content or "").lower()
-        if any(word in text for word in ["sad", "grief", "void", "lonely", "loss"]):
-            return -0.9
-        if any(word in text for word in ["joy", "happy", "hope", "love", "calm"]):
-            return 0.7
-        return 0.0
-
     def translate(self, contract: EmbodimentContract) -> VisualParameters:
         """Converts an EmbodimentContract into VisualParameters.
 
@@ -95,21 +87,14 @@ class EmbodimentAdapter:
         elif contract_category == ContractIntentCategory.SYSTEM_OPS:
             color = "#00FF00" # Green
 
-        # Emotional Valence (Derived from contract text fallback)
-        valence = self._derive_emotional_valence(contract.text_content)
-        semantic_concepts = []
-        if contract_category == ContractIntentCategory.CREATIVE:
-            semantic_concepts.append("reflective")
-            if valence == 0.0:
-                valence = 0.85
-        if abs(valence) >= 0.7:
-            semantic_concepts.append("affective")
+        # Emotional Valence (Derived or default)
+        valence = 0.0
 
         return VisualParameters(
             intent_category=target_intent_category,
             emotional_valence=valence,
             energy_level=energy_level,
-            semantic_concepts=semantic_concepts,
+            semantic_concepts=[],
             visual_parameters=VisualSpecifics(
                 base_shape=base_shape,
                 turbulence=turbulence,

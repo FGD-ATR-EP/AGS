@@ -17,7 +17,6 @@ class RegionExtractor:
         """
         if not self.validate(mask):
             raise ValueError("Mask out of bounds")
-
         return frame[:, mask.y_min:mask.y_max, mask.x_min:mask.x_max].clone()
 
     def merge(self, full: torch.Tensor, updated_region: torch.Tensor, mask: SpatialMask) -> torch.Tensor:

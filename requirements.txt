@@ -1,7 +1,5 @@
 colorama
 pytest
-pytest-asyncio
-pytest-timeout
 numpy
 scipy
 fastapi
@@ -24,5 +22,3 @@ nats-py
 uvloop
 msgpack
 orjson
-anyio
-google-cloud-firestore

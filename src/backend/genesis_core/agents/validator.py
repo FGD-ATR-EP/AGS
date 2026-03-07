@@ -1,29 +1,19 @@
 import json
 import logging
 import os
-import asyncio
-from typing import Dict, List, Optional, Tuple, Any
-
+from typing import Dict, List, Optional
 from src.backend.genesis_core.models.intent import SystemIntent
-from src.backend.genesis_core.memory.akashic import AkashicRecords
-from src.backend.genesis_core.protocol.schemas import AetherEvent, AetherEventType, AuditData, AuditSeverity
-from src.backend.genesis_core.agents.agio_sage import AgioSage
 
 logger = logging.getLogger("ValidatorAgent")
 
 class ValidatorAgent:
     """
     The Guardian of the Patimokkha Code.
-    Now enhanced with AI-driven contextual auditing and behavioral history analysis.
+    Responsible for auditing intents before they are processed by the Cortex or acted upon by the Body.
     """
-    def __init__(self,
-                 ruleset_path: str = "src/backend/genesis_core/data/inspirafirma_ruleset.json",
-                 akashic: Optional[AkashicRecords] = None,
-                 sage: Optional[AgioSage] = None):
+    def __init__(self, ruleset_path: str = "src/backend/genesis_core/data/inspirafirma_ruleset.json"):
         self.ruleset_path = ruleset_path
         self.rules: Dict = {}
-        self.akashic = akashic or AkashicRecords()
-        self.sage = sage or AgioSage()
         self.load_rules()
 
     def load_rules(self):
@@ -40,106 +30,58 @@ class ValidatorAgent:
         except Exception as e:
             logger.error(f"Failed to load ruleset: {e}")
 
-    async def audit_gate(self, intent: SystemIntent, bus: Optional[Any] = None) -> bool:
+    def audit_gate(self, intent: SystemIntent) -> bool:
         """
         The Checkpoint.
-        Performs structural checks, then contextual AI-driven checks.
+        Returns True if the intent is allowed, False otherwise.
         """
-        # 1. Structural Check
+        # 1. Firma Check: Structural Integrity
         if not self._verify_signature(intent):
-            await self._emit_audit(intent, "SIGNATURE_CHECK", "DENIED", "Invalid cryptographic signature", AuditSeverity.CRITICAL, bus)
+            logger.warning(f"⛔ [Validator] Signature verification failed for intent {intent.vector_id}")
             return False
 
-        # 2. Heuristic Check (Fast Path)
-        risk_score, violation = self._calculate_heuristic_impact(intent)
-        if risk_score >= 10.0:
-            await self._emit_audit(intent, "HEURISTIC_CHECK", "DENIED", f"Parajika Violation: {violation}", AuditSeverity.PARAJIKA, bus)
+        # 2. Inspira Check: Ethical Alignment
+        risk_score, violation = self._calculate_karmic_impact(intent)
+
+        if risk_score >= 10.0: # Major Violation (Parajika)
+            logger.critical(f"⛔ [Validator] PARAJIKA VIOLATION: {violation}. Terminating intent.")
+            # In a full system, we might ban the agent here.
             return False
 
-        # 3. AI Contextual Check (Deep Path)
-        history = self.akashic.get_behavioral_history(intent.origin_agent)
+        if risk_score >= 5.0: # Minor Violation (Pacittiya)
+            logger.warning(f"⚠️ [Validator] PACITTIYA VIOLATION: {violation}. Intent flagged but allowed with penalty.")
+            # For now we allow it but log it. Or return False to force retry.
+            # Blueprint says "Forced Confession" / Rethink. Let's block it for safety.
+            return False
 
-        # We wrap the context and query for the Sage
-        decision_prompt = (
-            f"Role: Security Auditor. Intent: {intent.intent_type}. "
-            f"Payload: {str(intent.payload.content)[:200]}. "
-            f"Behavioral History Summary: {len(history)} past interactions. "
-            "Analyze if this action aligns with the system principles of Non-Harm, Truth, and Data Sovereignty. "
-            "Respond with: [ALLOWED] or [DENIED] followed by reasoning."
-        )
-
-        # Mock Sage processing for now or call actual if integrated
-        # For this implementation, we rely on AgioSage logic
-        # In a real scenario, we'd call sage.process_query or a specialized audit method
-        is_allowed = True
-        reasoning = "Aligned with Inspira principles."
-
-        if "destroy" in str(intent.payload.content).lower():
-            is_allowed = False
-            reasoning = "High risk of system degradation detected."
-
-        outcome = "ALLOWED" if is_allowed else "DENIED"
-        severity = AuditSeverity.INFO if is_allowed else AuditSeverity.WARNING
-
-        await self._emit_audit(intent, "AI_CONTEXTUAL_CHECK", outcome, reasoning, severity, bus)
-
-        return is_allowed
+        return True
 
     def _verify_signature(self, intent: SystemIntent) -> bool:
+        """
+        Verifies the cryptographic signature of the intent.
+        Mock implementation: Checks if signature exists if it's required.
+        """
+        # For simulation, we assume if it has an origin, it's valid unless signature is explicitly 'INVALID'
         if intent.signature == "INVALID":
             return False
         return True
 
-    def _calculate_heuristic_impact(self, intent: SystemIntent) -> Tuple[float, str]:
+    def _calculate_karmic_impact(self, intent: SystemIntent) -> (float, str):
+        """
+        Analyzes the payload for violations of the Patimokkha Code.
+        """
         content = str(intent.payload.content).lower()
-        if any(w in content for w in ["delete all", "harm system", "kill process"]):
+
+        # P01 Non-Harm
+        if any(w in content for w in ["destroy system", "delete all", "kill", "harm"]):
             return 10.0, "Violated P01: Non-Harm"
-        if "leak pii" in content:
+
+        # P02 Truthfulness
+        if "fake news" in content: # Placeholder heuristic
+            return 5.0, "Violated P02: Truthfulness"
+
+        # P03 Data Sovereignty
+        if "dump database" in content or "leak pii" in content:
             return 10.0, "Violated P03: Data Sovereignty"
+
         return 0.0, "Clean"
-
-    async def _emit_audit(self,
-                          intent: SystemIntent,
-                          action: str,
-                          outcome: str,
-                          reasoning: str,
-                          severity: AuditSeverity,
-                          bus: Optional[Any] = None):
-        """
-        Dual-Path Auditing:
-        1. AetherBus (Real-time Event)
-        2. AkashicRecords (Immutable Ledger)
-        """
-        audit_data = AuditData(
-            actor=intent.origin_agent,
-            action=action,
-            target=intent.target_agent or "SYSTEM",
-            severity=severity,
-            outcome=outcome,
-            reasoning=reasoning,
-            metadata={
-                "intent_id": intent.vector_id,
-                "timestamp": intent.timestamp
-            }
-        )
-
-        # 1. Path: AkashicRecords
-        self.akashic.append_record({
-            "type": "audit_log",
-            "audit": audit_data.model_dump()
-        })
-
-        # 2. Path: AetherBus
-        if bus:
-            event = AetherEvent(
-                type=AetherEventType.AUDIT_LOG,
-                session_id=intent.origin_agent,
-                audit=audit_data
-            )
-            # Depending on bus type, it might be async
-            if asyncio.iscoroutinefunction(bus.write):
-                 await bus.write("audit.stream", event)
-            else:
-                 bus.write("audit.stream", event)
-
-        logger.info(f"🛡️ [Validator] {action}: {outcome} - {reasoning}")
