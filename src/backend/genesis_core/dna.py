@@ -31,7 +31,8 @@ class PhysicsIntentData:
     uColor: Tensor = field(default_factory=lambda: torch.tensor([0.0, 0.0, 0.0]) if torch else [0.0, 0.0, 0.0])
 
     def __post_init__(self):
-        if torch and not isinstance(self.uColor, torch.Tensor):
+        tensor_type = getattr(torch, "Tensor", None) if torch else None
+        if torch and isinstance(tensor_type, type) and not isinstance(self.uColor, tensor_type):
             self.uColor = torch.tensor(self.uColor, dtype=torch.float32)
 
 # -----------------------------------------------------------------------------

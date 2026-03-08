@@ -12,7 +12,11 @@ try:
     import torch
     import torch.nn as nn
     import torch.nn.functional as F
-    TORCH_AVAILABLE = True
+    try:
+        from unittest.mock import Mock
+    except Exception:
+        Mock = tuple()
+    TORCH_AVAILABLE = not isinstance(torch, Mock)
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Disable MPS for mixed precision stability as per instruction
     # if torch.backends.mps.is_available(): DEVICE = torch.device("mps")

@@ -1,5 +1,8 @@
 import sys
+import asyncio
+import inspect
 from unittest.mock import MagicMock
+import pytest
 
 # Helper to mock modules
 def mock_module(module_name):
@@ -16,8 +19,11 @@ def mock_module(module_name):
             setattr(parent, parts[1], m)
     return sys.modules[module_name]
 
-# Mock heavy dependencies
-mock_module("torch")
+# Mock heavy dependencies (only when unavailable)
+try:
+    import torch  # noqa: F401
+except Exception:
+    mock_module("torch")
 mock_module("google")
 mock_module("google.generativeai")
 mock_module("google.generativeai.types")
@@ -27,5 +33,24 @@ mock_module("accelerate")
 mock_module("PIL")
 mock_module("PIL.Image")
 
-# Mock classes often used in type hints
-sys.modules["torch"].Tensor = MagicMock
+# Mock classes often used in type hints (only for mocked torch)
+if isinstance(sys.modules.get("torch"), MagicMock):
+    sys.modules["torch"].Tensor = MagicMock
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "asyncio: mark test as async")
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_pyfunc_call(pyfuncitem):
+    """Minimal asyncio runner for environments without pytest-asyncio."""
+    if "asyncio" not in pyfuncitem.keywords:
+        return None
+
+    testfunction = pyfuncitem.obj
+    if inspect.iscoroutinefunction(testfunction):
+        asyncio.run(testfunction(**pyfuncitem.funcargs))
+        return True
+
+    return None

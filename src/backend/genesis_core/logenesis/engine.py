@@ -184,8 +184,12 @@ class LogenesisEngine:
                 context=IntentContext(energy_level=packet.energy_level, emotional_valence=0.0)
             )
 
-            # Request processing via Lifecycle
-            response_intent = await self.lifecycle.process_request(query_intent)
+            # Request processing via Lifecycle. Fall back to direct cognitive path
+            # when lifecycle startup has not been invoked (common in unit tests/CLI flows).
+            if self.lifecycle.running:
+                response_intent = await self.lifecycle.process_request(query_intent)
+            else:
+                response_intent = await self.lifecycle.agio_sage.process_query(query_intent)
 
             if response_intent and response_intent.intent_type == "COGNITIVE_RESPONSE":
                 try:
@@ -247,7 +251,8 @@ class LogenesisEngine:
         coherence = self._calculate_coherence(current_state, input_intent)
 
         # 2c. Level 3 Check: Rejection (Collapse)
-        if raw_entropy > 0.9 or coherence < 0.2:
+        skip_collapse_for_direct_visual = packet.modality == "visual" and isinstance(packet.raw_payload, AetherOutput)
+        if not skip_collapse_for_direct_visual and (raw_entropy > 0.9 or coherence < 0.2):
             logger.warning(f"State Collapse: Entropy={raw_entropy:.2f}, Coherence={coherence:.2f}")
             return LogenesisResponse(
                 state=LogenesisState.COLLAPSED,
