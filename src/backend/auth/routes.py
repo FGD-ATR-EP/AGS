@@ -60,7 +60,7 @@ def login(request: Request):
     response = RedirectResponse(url=auth_url)
 
     # Store state in cookie to verify on callback
-    response.set_cookie(key="oauth_state", value=state, httponly=True)
+    response.set_cookie(key="oauth_state", value=state, httponly=True, secure=True)
 
     return response
 
