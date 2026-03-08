@@ -1,13 +1,96 @@
 import asyncio
 import logging
 from typing import Dict, Any, List
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 from datetime import datetime
-import json
+from collections import defaultdict, deque
+from pydantic import BaseModel, Field
 
 from src.backend.genesis_core.protocol.schemas import AetherEvent, AetherEventType
 
 logger = logging.getLogger("MetricCollector")
+
+
+class ResonatorTelemetryPoint(BaseModel):
+    resonator_id: str = Field(..., min_length=1)
+    latency_ms: float = Field(..., ge=0.0)
+    correction_rate: float = Field(..., ge=0.0, le=1.0)
+    safety_override_triggered: bool = False
+    timestamp: datetime | None = None
+
+
+class ResonatorReliabilityTracker:
+    """Tracks resonator health and computes reliability scorecards."""
+
+    def __init__(self):
+        self._window_seconds = 7 * 24 * 60 * 60
+        self._telemetry: Dict[str, deque] = defaultdict(deque)
+
+    def record(self, point: ResonatorTelemetryPoint):
+        ts = (point.timestamp or datetime.now()).timestamp()
+        queue = self._telemetry[point.resonator_id]
+        queue.append(
+            {
+                "timestamp": ts,
+                "latency_ms": point.latency_ms,
+                "correction_rate": point.correction_rate,
+                "safety_override_triggered": point.safety_override_triggered,
+            }
+        )
+        self._trim(queue, now_ts=ts)
+
+    def get_scorecard(self) -> Dict[str, Any]:
+        now_ts = datetime.now().timestamp()
+        scorecard: Dict[str, Any] = {}
+        for resonator_id, queue in self._telemetry.items():
+            self._trim(queue, now_ts=now_ts)
+            if not queue:
+                continue
+            scorecard[resonator_id] = {
+                "daily": self._summarize(queue, now_ts, 24 * 60 * 60),
+                "weekly": self._summarize(queue, now_ts, self._window_seconds),
+            }
+        return scorecard
+
+    def _trim(self, queue: deque, now_ts: float):
+        cutoff = now_ts - self._window_seconds
+        while queue and queue[0]["timestamp"] < cutoff:
+            queue.popleft()
+
+    def _summarize(self, queue: deque, now_ts: float, window_seconds: int) -> Dict[str, Any]:
+        cutoff = now_ts - window_seconds
+        sample = [item for item in queue if item["timestamp"] >= cutoff]
+        if not sample:
+            return {
+                "samples": 0,
+                "avg_latency_ms": 0.0,
+                "avg_correction_rate": 0.0,
+                "safety_override_frequency_per_hour": 0.0,
+                "reliability_score": 0.0,
+            }
+
+        samples = len(sample)
+        avg_latency_ms = sum(item["latency_ms"] for item in sample) / samples
+        avg_correction_rate = sum(item["correction_rate"] for item in sample) / samples
+        safety_overrides = sum(1 for item in sample if item["safety_override_triggered"])
+        hours = max(window_seconds / 3600, 1e-9)
+        safety_override_frequency_per_hour = safety_overrides / hours
+
+        latency_component = max(0.0, 1.0 - (avg_latency_ms / 1000.0))
+        correction_component = max(0.0, 1.0 - avg_correction_rate)
+        safety_component = max(0.0, 1.0 - safety_override_frequency_per_hour)
+        reliability_score = round(
+            (latency_component * 0.4 + correction_component * 0.4 + safety_component * 0.2) * 100,
+            2,
+        )
+
+        return {
+            "samples": samples,
+            "avg_latency_ms": round(avg_latency_ms, 2),
+            "avg_correction_rate": round(avg_correction_rate, 4),
+            "safety_override_frequency_per_hour": round(safety_override_frequency_per_hour, 4),
+            "reliability_score": reliability_score,
+        }
 
 class MetricCollector:
     """
@@ -30,6 +113,7 @@ class MetricCollector:
 
         # Subscribers (Dashboards)
         self.subscribers: List[WebSocket] = []
+        self.resonator_tracker = ResonatorReliabilityTracker()
 
     @classmethod
     def get_instance(cls):
@@ -91,6 +175,26 @@ class MetricCollector:
         logger.info("📈 Dashboard Connected")
 
 router = APIRouter(tags=["metrics"])
+
+
+@router.post("/v1/metrics/resonator-telemetry")
+async def ingest_resonator_telemetry(payload: ResonatorTelemetryPoint):
+    collector = MetricCollector.get_instance()
+    collector.resonator_tracker.record(payload)
+    return {"status": "ok", "resonator_id": payload.resonator_id}
+
+
+@router.get("/v1/metrics/resonator-reliability")
+async def get_resonator_reliability(resonator_id: str | None = None):
+    collector = MetricCollector.get_instance()
+    scorecard = collector.resonator_tracker.get_scorecard()
+
+    if resonator_id:
+        if resonator_id not in scorecard:
+            raise HTTPException(status_code=404, detail="Resonator not found")
+        return {"resonator_id": resonator_id, "scorecard": scorecard[resonator_id]}
+
+    return {"scorecard": scorecard}
 
 @router.websocket("/ws/v3/metrics")
 async def metrics_endpoint(websocket: WebSocket):
