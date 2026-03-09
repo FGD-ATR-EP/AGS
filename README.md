@@ -43,28 +43,28 @@
 
 ### 🗄️ System Architecture Diagram (Database-Centric)
 
-โครงสร้างด้านล่างสะท้อน schema หลักของระบบ Entropy Economy โดยเชื่อมความสัมพันธ์จาก payload ที่รับเข้ามา ไปยังการประเมิน และลงท้ายที่ ledger สำหรับบันทึกธุรกรรมแบบ hash-chain
+โครงสร้างด้านล่างอ้างอิงจาก schema จริงในโมดูล `src/backend/genesis_core/entropy/` โดยแสดงลำดับข้อมูลจาก `EntropySubmitRequest` → `EntropyPacket`/nested blocks → `EntropyAssessment` และการ persist ลง `EntropyLedgerEntry` ที่ใช้ hash-chain continuity
 
 ```mermaid
 erDiagram
-    USER ||--o{ ENTROPY_PACKET : submits
+    ENTROPY_SUBMIT_REQUEST ||--|| ENTROPY_PACKET : wraps
+    ENTROPY_SUBMIT_REQUEST ||--o{ ENTROPY_LEDGER_ENTRY : attributed_to
     ENTROPY_PACKET ||--|| USER_CONTEXT : has
     ENTROPY_PACKET ||--|| PREDICTION_SNAPSHOT : has
     ENTROPY_PACKET ||--|| ACTUAL_ACTION : has
     ACTUAL_ACTION ||--|| MICRO_METRICS : has
-    ENTROPY_PACKET ||--o| ENTROPY_ASSESSMENT : produces
-    USER ||--o{ ENTROPY_LEDGER : owns
-    ENTROPY_ASSESSMENT ||--|| ENTROPY_LEDGER : recorded_as
-    ENTROPY_LEDGER ||--o| ENTROPY_LEDGER : hash_prev
+    ENTROPY_PACKET ||--o| ENTROPY_ASSESSMENT : evaluated_as
+    ENTROPY_ASSESSMENT ||--|| ENTROPY_LEDGER_ENTRY : persisted_into
+    ENTROPY_LEDGER_ENTRY ||--o| ENTROPY_LEDGER_ENTRY : hash_prev
 
-    USER {
-      uuid user_id PK
+    ENTROPY_SUBMIT_REQUEST {
+      uuid user_id
+      object packet
     }
 
     ENTROPY_PACKET {
       uuid packet_id PK
       datetime timestamp
-      uuid user_id FK
     }
 
     USER_CONTEXT {
@@ -99,13 +99,13 @@ erDiagram
       float safety_weight
       float surprise_factor
       int reward_amount
-      string meter_state
+      enum meter_state
       bool preserve
       bool trigger_model_update
       string anti_gaming_flag
     }
 
-    ENTROPY_LEDGER {
+    ENTROPY_LEDGER_ENTRY {
       uuid id PK
       uuid user_id FK
       float qou_score
@@ -117,7 +117,7 @@ erDiagram
     }
 ```
 
-**English note:** The diagram maps API packet entities (`EntropyPacket`, nested context/action blocks), evaluation output (`EntropyAssessment`), and immutable treasury persistence (`EntropyLedger`) into one end-to-end database view.
+**English note:** This diagram mirrors the current entropy schemas and ledger dataclass in code, connecting request payloads (`EntropySubmitRequest` + `EntropyPacket`) to evaluation (`EntropyAssessment`) and immutable persistence (`EntropyLedgerEntry` + hash-chain links).
 
 ---
 
@@ -189,19 +189,21 @@ pytest -q tests/test_region_extractor.py
 
 ### 4. แนวทางต่อยอดเชิงสร้างสรรค์ / New Feature Proposals
 
-> ลบรายการ “ข้อเสนอแนะที่ทำเสร็จแล้ว / Completed Suggestions” ออกจากเอกสารแล้ว เพื่อคงเฉพาะงานที่ยังควรผลักดันต่อ
-
 #### 🇹🇭 ข้อเสนอใหม่ (Thai)
 - เพิ่ม **Entropy Replay Studio** สำหรับ replay packet + assessment แบบ time-travel debugging เพื่อวิเคราะห์เหตุผลที่ QoU สูง/ต่ำในแต่ละรอบ
 - สร้าง **Policy Simulator Sandbox** ให้ทีม Governance ปรับค่าถ่วงน้ำหนัก (`semantic_weight`, `safety_weight`) แล้วดูผลกระทบต่อ reward distribution ก่อน deploy จริง
 - เพิ่ม **Resonator Reliability Scorecard** สำหรับติดตามความเสถียรของแต่ละ resonator (latency, correction rate, safety override) เป็นรายวัน/รายสัปดาห์
 - เพิ่ม **Ledger Explorer API** พร้อม query ตามช่วงเวลา, ช่วงคะแนน QoU, และ hash-chain continuity check เพื่อรองรับ audit ภายใน
+- เพิ่ม **Adaptive Reward Guardrails** เพื่อกำหนดเพดาน/พื้น reward แบบไดนามิกตามพฤติกรรมความเสี่ยง และลดโอกาสถูกเกมระบบ
+- เพิ่ม **Cross-Session Intent Graph** สำหรับเชื่อมโยง sequence ของ packet ข้าม session เพื่อค้นหา pattern เชิงเจตนาและ anomaly ที่ยาวหลายวัน
 
 #### 🇬🇧 New proposals (English)
 - Build an **Entropy Replay Studio** to replay packet + assessment timelines and explain why a session scored high or low QoU.
 - Introduce a **Policy Simulator Sandbox** so Governance can tune (`semantic_weight`, `safety_weight`) and preview reward-impact before production rollout.
 - Add a **Resonator Reliability Scorecard** to monitor per-resonator health (latency, correction rate, safety override frequency) over daily/weekly windows.
 - Provide a **Ledger Explorer API** with time-range filters, QoU bands, and hash-chain continuity checks for internal audit workflows.
+- Implement **Adaptive Reward Guardrails** to enforce dynamic reward ceilings/floors based on risk behavior and reduce gaming pressure.
+- Introduce a **Cross-Session Intent Graph** to correlate packet sequences across sessions and surface long-horizon intent/anomaly patterns.
 
 ---
 
