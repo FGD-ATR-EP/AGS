@@ -146,6 +146,27 @@ erDiagram
   - `src/backend/agents/reflector.py`
   - `src/backend/gems/repository.py`, `src/backend/gems/lifecycle.py`
 
+
+## 🧭 AI-OS Platform Evolution (New)
+
+เราได้กำหนดทิศทางอย่างเป็นทางการให้ AETHERIUM GENESIS เป็น **AI Operating System Platform** ที่ควบคุมหลายระบบ โดยจัดโครงสร้างแกนหลักดังนี้:
+- Governance Core = Kernel/Security Layer
+- Resonators = Processes
+- AetherBus = System Bus
+- Vessels = Drivers/Adapters
+- Akashic Memory = File System/Event Ledger
+- Frontend PWA = User Interface
+
+พร้อม roadmap วิวัฒนาการ 4 ระยะ:
+1. AI Automation Platform
+2. AI Agent Orchestration
+3. AI Governance + Decision System
+4. AI Operating System
+
+ดูรายละเอียดเต็มในเอกสาร: **[docs/AI_OS_PLATFORM_ROADMAP_TH.md](docs/AI_OS_PLATFORM_ROADMAP_TH.md)**
+
+---
+
 ## 🚀 การเริ่มต้นระบบ (System Awakening)
 
 ### 1. การเตรียมสภาพแวดล้อม
