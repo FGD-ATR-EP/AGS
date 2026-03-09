@@ -33,6 +33,7 @@ from src.backend.routers.aetherium import router as aetherium_router
 from src.backend.routers.metrics import router as metrics_router
 from src.backend.routers.metrics import MetricCollector
 from src.backend.routers.entropy import router as entropy_router
+from src.backend.routers.governance import router as governance_router
 from src.backend.genesis_core.bus.extreme import AetherBusExtreme
 from src.backend.security.key_manager import KeyManager
 from src.backend.genesis_core.entropy import AkashicTreasury, EntropyReplayStudio, EntropyValidator
@@ -85,6 +86,8 @@ app.include_router(auth_router)
 app.include_router(aetherium_router)
 app.include_router(metrics_router)
 app.include_router(entropy_router)
+app.include_router(governance_router)
+app.include_router(governance_router)
 
 # Global Services
 auditorium: Optional[AuditoriumService] = None
@@ -515,3 +518,6 @@ async def overseer_gateway():
 # 3. Mount Root (The Living Interface)
 # NOTE: We mount src/frontend as root, so index.html is served at /
 app.mount("/", StaticFiles(directory=os.path.join(BASE_DIR, "src/frontend"), html=True), name="root")
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
