@@ -1,12 +1,18 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 from pydantic import BaseModel
+import logging
 
 from src.backend.genesis_core.governance.core import ApprovalRequest
+from src.backend.genesis_core.governance.scenario_presets import (
+    get_scenario_preset,
+    list_scenario_presets,
+)
 from src.backend.genesis_core.lifecycle import LifecycleManager
 from src.backend.genesis_core.memory.akashic import MemoryProjectionManager
 
 router = APIRouter(prefix="/governance", tags=["governance"])
+logger = logging.getLogger("governance.router")
 
 lifecycle = LifecycleManager()
 memory_projection = MemoryProjectionManager(lifecycle.ledger)
@@ -48,3 +54,44 @@ class GemSimulationRequest(BaseModel):
 async def simulate_policy(request: GemSimulationRequest):
     gov = lifecycle.validator.governance
     return gov.simulate_rule_promotion(gem=request.gem, shadow_mode=request.shadow_mode)
+
+
+@router.get("/scenario-presets")
+async def get_scenario_presets() -> Dict[str, List[Dict[str, Any]]]:
+    return {"presets": list_scenario_presets()}
+
+
+class ScenarioPresetRunRequest(BaseModel):
+    preset_id: str
+
+
+@router.post("/scenario-presets/run")
+async def run_scenario_preset(request: ScenarioPresetRunRequest) -> Dict[str, Any]:
+    gov = lifecycle.validator.governance
+    try:
+        preset = get_scenario_preset(request.preset_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    logger.info("Running governance scenario preset", extra={"preset_id": preset.preset_id})
+    results: List[Dict[str, Any]] = []
+    for scenario_action in preset.actions:
+        tier = gov.assess_risk(action_type=scenario_action.action_type, payload=scenario_action.payload)
+        status = "approval_required" if tier >= 2 else "auto_allow"
+        results.append(
+            {
+                "action_type": scenario_action.action_type,
+                "tier": int(tier),
+                "status": status,
+            }
+        )
+
+    return {
+        "preset_id": preset.preset_id,
+        "name": preset.name,
+        "actions": results,
+        "summary": {
+            "total": len(results),
+            "approval_required": len([r for r in results if r["status"] == "approval_required"]),
+        },
+    }
