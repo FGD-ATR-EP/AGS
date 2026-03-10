@@ -52,6 +52,14 @@ class ResonatorReliabilityTracker:
             }
         return scorecard
 
+    @staticmethod
+    def _health_status(reliability_score: float) -> str:
+        if reliability_score >= 85.0:
+            return "HEALTHY"
+        if reliability_score >= 60.0:
+            return "DEGRADED"
+        return "CRITICAL"
+
     def _trim(self, queue: deque, now_ts: float):
         cutoff = now_ts - self._window_seconds
         while queue and queue[0]["timestamp"] < cutoff:
@@ -60,13 +68,19 @@ class ResonatorReliabilityTracker:
     def _summarize(self, queue: deque, now_ts: float, window_seconds: int) -> Dict[str, Any]:
         cutoff = now_ts - window_seconds
         sample = [item for item in queue if item["timestamp"] >= cutoff]
+        window_start = datetime.fromtimestamp(cutoff).isoformat()
+        window_end = datetime.fromtimestamp(now_ts).isoformat()
         if not sample:
             return {
                 "samples": 0,
+                "window_start": window_start,
+                "window_end": window_end,
                 "avg_latency_ms": 0.0,
                 "avg_correction_rate": 0.0,
+                "safety_override_count": 0,
                 "safety_override_frequency_per_hour": 0.0,
                 "reliability_score": 0.0,
+                "health_status": self._health_status(0.0),
             }
 
         samples = len(sample)
@@ -86,10 +100,14 @@ class ResonatorReliabilityTracker:
 
         return {
             "samples": samples,
+            "window_start": window_start,
+            "window_end": window_end,
             "avg_latency_ms": round(avg_latency_ms, 2),
             "avg_correction_rate": round(avg_correction_rate, 4),
+            "safety_override_count": safety_overrides,
             "safety_override_frequency_per_hour": round(safety_override_frequency_per_hour, 4),
             "reliability_score": reliability_score,
+            "health_status": self._health_status(reliability_score),
         }
 
 class MetricCollector:

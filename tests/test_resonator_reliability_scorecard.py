@@ -41,6 +41,10 @@ def test_resonator_scorecard_daily_and_weekly_windows():
     assert scorecard["res-1"]["daily"]["avg_latency_ms"] == 170.0
     assert scorecard["res-1"]["daily"]["avg_correction_rate"] == 0.15
     assert 0.0 <= scorecard["res-1"]["daily"]["reliability_score"] <= 100.0
+    assert scorecard["res-1"]["daily"]["safety_override_count"] == 1
+    assert scorecard["res-1"]["daily"]["health_status"] in {"HEALTHY", "DEGRADED", "CRITICAL"}
+    assert scorecard["res-1"]["daily"]["window_start"]
+    assert scorecard["res-1"]["daily"]["window_end"]
 
 
 def test_resonator_scorecard_excludes_older_than_week():
@@ -69,6 +73,7 @@ def test_resonator_scorecard_excludes_older_than_week():
     assert scorecard["res-2"]["daily"]["samples"] == 1
     assert scorecard["res-2"]["weekly"]["samples"] == 1
     assert scorecard["res-2"]["weekly"]["avg_latency_ms"] == 200.0
+    assert scorecard["res-2"]["weekly"]["safety_override_count"] == 0
 
 
 def test_resonator_reliability_api_endpoints():
@@ -88,6 +93,7 @@ def test_resonator_reliability_api_endpoints():
         data = report.json()
         assert data["resonator_id"] == "res-api-1"
         assert data["scorecard"]["daily"]["samples"] == 1
+        assert data["scorecard"]["daily"]["health_status"] in {"HEALTHY", "DEGRADED", "CRITICAL"}
 
         missing = client.get("/v1/metrics/resonator-reliability", params={"resonator_id": "missing"})
         assert missing.status_code == 404
