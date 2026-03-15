@@ -1,7 +1,6 @@
 import pytest
 import sys
 import os
-import asyncio
 from unittest.mock import MagicMock
 
 # Ensure path
@@ -57,3 +56,20 @@ def test_engine_suspend():
         assert "NIRODHA" in resp.text_content
     except Exception as e:
         pytest.fail(f"Engine Init failed: {e}")
+
+
+def test_bus_auditor_close_releases_resources():
+    from src.backend.genesis_core.auditorium.bus_audit import AetherBusAuditor
+
+    auditor = AetherBusAuditor()
+    writer = MagicMock()
+    reader = MagicMock()
+    auditor.writer = writer
+    auditor.reader = reader
+
+    auditor.close()
+
+    reader.close.assert_called_once()
+    writer.close.assert_called_once()
+    assert auditor.reader is None
+    assert auditor.writer is None

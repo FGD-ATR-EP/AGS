@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import json
 from src.backend.genesis_core.bus.factory import BusFactory
 from .dashboard import AetheriumHealthDashboard
 
@@ -28,6 +27,9 @@ class AuditoriumService:
                 await self.task
             except asyncio.CancelledError:
                 pass
+
+        if getattr(self.dashboard, "bus", None):
+            self.dashboard.bus.close()
 
     async def monitor_loop(self):
         logger.info("🏛️ Auditorium Monitor Loop Active")

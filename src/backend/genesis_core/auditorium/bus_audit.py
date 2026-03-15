@@ -1,7 +1,6 @@
 import time
 import uuid
 import logging
-import asyncio
 from src.backend.genesis_core.bus.hyper_sonic import HyperSonicBus, HyperSonicReader
 
 logger = logging.getLogger("AetherBusAuditor")
@@ -93,3 +92,13 @@ class AetherBusAuditor:
         except Exception as e:
             logger.error(f"Latency Measure Error: {e}")
             return 999.0
+
+
+    def close(self):
+        """Release HyperSonic resources held by this auditor."""
+        if self.reader:
+            self.reader.close()
+            self.reader = None
+        if self.writer:
+            self.writer.close()
+            self.writer = None

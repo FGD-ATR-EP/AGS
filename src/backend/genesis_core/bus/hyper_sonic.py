@@ -42,6 +42,7 @@ class HyperSonicBus:
         self.shm_size = shm_size
         self.shm: Optional[shared_memory.SharedMemory] = None
         self.buffer = None
+        self._owns_segment = False
 
         self._initialize_shm()
 
@@ -50,6 +51,7 @@ class HyperSonicBus:
         try:
             # Try to create
             self.shm = shared_memory.SharedMemory(name=self.shm_name, create=True, size=self.shm_size)
+            self._owns_segment = True
             logger.info(f"⚡ [HyperSonic] Created Shared Memory: {self.shm_name} ({self.shm_size} bytes)")
 
             # Initialize Control Block
@@ -60,7 +62,7 @@ class HyperSonicBus:
 
         except FileExistsError:
             # Connect to existing
-            self.shm = shared_memory.SharedMemory(name=self.shm_name)
+            self.shm = shared_memory.SharedMemory(name=self.shm_name, track=False)
             logger.info(f"⚡ [HyperSonic] Connected to existing Shared Memory: {self.shm_name}")
 
         self.buffer = self.shm.buf
@@ -138,11 +140,16 @@ class HyperSonicBus:
     def close(self):
         if self.shm:
             self.shm.close()
+            self.buffer = None
             # unlink is risky if other processes are using it, usually handled by a cleanup script or Orchestrator
-            try:
-                self.shm.unlink()
-            except Exception:
-                pass
+            if self._owns_segment:
+                try:
+                    self.shm.unlink()
+                except FileNotFoundError:
+                    pass
+                except Exception:
+                    pass
+            self.shm = None
 
     def __enter__(self):
         return self
@@ -164,7 +171,7 @@ class HyperSonicReader:
 
     def connect(self) -> bool:
         try:
-            self.shm = shared_memory.SharedMemory(name=self.shm_name)
+            self.shm = shared_memory.SharedMemory(name=self.shm_name, track=False)
             self.buffer = self.shm.buf
 
             # Read Buffer Size from Control Block
@@ -238,3 +245,5 @@ class HyperSonicReader:
     def close(self):
         if self.shm:
             self.shm.close()
+            self.buffer = None
+            self.shm = None
