@@ -29,6 +29,15 @@ The platform is successful when it can safely translate intent into action acros
 
 ---
 
+## Agent Operating Rules
+
+- Treat this file as the canonical instruction layer for coding agents in this repository.
+- Prefer minimal, coherent changes that preserve subsystem boundaries and protocol compatibility.
+- If a change impacts execution, policy, or persistence paths, explicitly validate governance and memory implications before implementation.
+- Reject contributions that increase autonomy without control surfaces, auditability, and replayable records.
+
+---
+
 ## What This Repository Is
 
 This repository is the implementation space for:
