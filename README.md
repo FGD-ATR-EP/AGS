@@ -210,25 +210,25 @@ pytest -q tests/test_region_extractor.py
 
 ### 4. Future Roadmap / แผนต่อยอดในอนาคต
 
-#### 🇹🇭 โร้ดแมปฟังก์ชันใหม่ (Thai)
-- **Scenario Presets**: ชุดสถานการณ์สำเร็จรูปสำหรับการทดสอบ intent/governance แบบซ้ำได้และวัดผลได้
-- **Plugin Renderer API**: API สำหรับเสียบ renderer เพิ่มเติม (2D/3D/immersive canvas) โดยไม่แตะแกนหลัก
-- **Replay Diff Analyzer**: เปรียบเทียบ replay หลายรอบเพื่อหา drift ของเหตุผล/คะแนน และชี้เหตุของความต่างแบบ explainable
-- **Policy-Driven Link Analysis**: วิเคราะห์ความเชื่อมโยงของเหตุการณ์/เอกสารภายใต้นโยบายที่กำหนดได้ (risk-aware graph traversal)
-- **Hybrid Persistence**: ผสาน event ledger + indexed store เพื่อให้ทั้ง auditability และ query performance
-- **Collaboration Controls**: สิทธิ์การทำงานร่วมกันระดับทีม/บทบาท, approval chain, และ action visibility
-- **Voice Quality Dashboard**: แดชบอร์ดวัดคุณภาพเสียงเชิงประสบการณ์ (latency, clarity, interruption, recovery)
-- **Offline-First Runtime Packs**: ชุด runtime ที่ใช้งานแบบออฟไลน์ได้สำหรับ edge/dev environments พร้อมกลไก sync เมื่อออนไลน์
+#### 🇹🇭 ข้อเสนอฟังก์ชัน/แนวทางต่อยอดใหม่ (Thai)
+- **Directive Envelope Standardization**: ทำ schema กลางสำหรับ Intent→Reasoning→Governance→Execution เพื่อให้ trace และ replay ข้ามโมดูลได้เสถียร
+- **Governance Dry-Run Mode**: โหมดจำลองผลการอนุมัติ/บล็อกก่อน execute จริง พร้อมเหตุผลและ risk score แบบ explainable
+- **Akashic Replay Studio**: UI สำหรับ replay เส้นทางเหตุการณ์ทีละขั้น พร้อม timeline, policy checkpoints และผลกระทบปลายทาง
+- **Cross-Vessel Transaction Guard**: กลไก two-phase style approval สำหรับงานที่กระทบหลาย vessel เพื่อลด partial failure
+- **Protocol Compatibility Matrix**: ตาราง compatibility ของ packet/schema version เพื่อช่วย rollout แบบ backward compatible
+- **Memory Integrity Sentinel**: งานตรวจความครบถ้วน hash-chain + anomaly detection ของ ledger/projections พร้อม alert
+- **Observability Pack (OTel-first)**: เพิ่ม trace/span และ governance tags มาตรฐานเพื่อให้ root-cause ได้เร็วขึ้น
+- **Policy Simulation Sandbox**: พื้นที่ทดสอบ policy-as-code กับเหตุการณ์สังเคราะห์ก่อน deploy จริง
 
-#### 🇬🇧 Future roadmap proposals (English)
-- **Scenario Presets** for repeatable intent/governance simulations with measurable outcomes.
-- **Plugin Renderer API** to plug in new render pipelines (2D/3D/immersive canvas) without changing core logic.
-- **Replay Diff Analyzer** to compare multiple replay runs, detect reasoning/score drift, and explain root deltas.
-- **Policy-Driven Link Analysis** for risk-aware relationship discovery across events and documents.
-- **Hybrid Persistence** combining immutable ledger flows with indexed stores for both auditability and fast querying.
-- **Collaboration Controls** including team/role permissions, approval chains, and action visibility boundaries.
-- **Voice Quality Dashboard** to track conversational quality metrics (latency, clarity, interruption, recovery).
-- **Offline-First Runtime Packs** for resilient edge/dev operation with deferred sync when connectivity returns.
+#### 🇬🇧 New feature and expansion proposals (English)
+- **Directive Envelope Standardization** for stable Intent→Reasoning→Governance→Execution tracing and replay across subsystems.
+- **Governance Dry-Run Mode** to simulate approve/block decisions before execution, with explainable rationales and risk scores.
+- **Akashic Replay Studio** for step-by-step event playback with timeline views, policy checkpoints, and downstream impact visibility.
+- **Cross-Vessel Transaction Guard** with two-phase style approvals for multi-vessel operations to reduce partial failures.
+- **Protocol Compatibility Matrix** to track packet/schema version interoperability and support backward-compatible rollouts.
+- **Memory Integrity Sentinel** to validate hash-chain continuity and detect ledger/projection anomalies with alerting.
+- **Observability Pack (OTel-first)** introducing standardized traces/spans and governance tags for faster incident root-cause analysis.
+- **Policy Simulation Sandbox** to test policy-as-code behavior against synthetic scenarios prior to production deployment.
 
 ---
 
