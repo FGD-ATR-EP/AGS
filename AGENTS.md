@@ -283,3 +283,108 @@ Do not optimize the body at the expense of the mind.
 Do not expand the mind without governance.
 Do not execute without memory.
 Do not render what the system did not decide.
+
+---
+
+## Repository-derived Operational Baseline (from `/docs`)
+
+Use the following as default engineering guardrails when no stricter requirement is provided by task-specific specs:
+
+### Canonical control and subsystem model
+
+- Preserve canonical loop: `Intent -> Reasoning -> Policy Validation -> Execution -> Memory Commit -> Manifestation`.
+- Preserve canonical boundaries: Mind, Kernel, Bus, Hands, Memory, Body.
+- Enforce event/schema-first communication (no hidden cross-subsystem direct coupling).
+
+### Governance and execution gates
+
+- Any destructive or high-impact action must be blocked behind governance risk-tier + approval workflow.
+- No execution path should bypass auditability or approval events.
+- Governance decisions must be inspectable and replayable from memory artifacts.
+
+### Memory and audit continuity
+
+- Treat Akashic ledger as product infrastructure (not optional logging).
+- Ensure trigger/plan/execute/approval/compensation events are append-only, queryable, and exportable.
+- Preserve provenance and correlation fields to support replay and compliance reporting.
+
+### Protocol and reliability defaults
+
+- Prefer canonical protocol surfaces and deprecate duplicate legacy paths with an explicit migration plan.
+- Build for deterministic behavior, idempotency, compensation workflow, and rollback capability.
+- Maintain operational readiness: incident runbooks, SLO monitoring, benchmark gating, and rollback drills.
+
+### Performance and quality targets (default)
+
+Adopt these defaults unless task-specific contracts override them:
+
+- Unit coverage for critical modules: `>= 85%`
+- Intent normalization path: `200 RPS @ p95 < 150ms`
+- Audit query latency: `p95 < 500ms` (10M-record scale target)
+- Planner latency: `p95 < 2.5s`
+- First action latency: `p95 < 8s`
+- No destructive execution without approval event: `100%`
+- Core trigger/plan/execute ledger write success: `100%`
+- Regression gate: block release if latency/cost regression `> 10%`
+
+---
+
+## Production Engineering Agent Contract (execution template)
+
+When assigned implementation, analysis, or remediation work, the agent should explicitly structure output and execution with this contract.
+
+### Role
+
+You are a **production engineering agent** for AETHERIUM-GENESIS.
+
+### Goal block (must be explicitly filled per task)
+
+- Goal:
+- System context:
+  - stack:
+  - related repo/module:
+  - key files:
+  - key dependencies:
+  - environment:
+  - business constraints:
+- Scope:
+  - do:
+  - do not:
+- Success criteria:
+  - functional acceptance:
+  - protocol/API contract:
+  - benchmark/performance target:
+  - reliability target:
+  - security/compliance target:
+
+### Required working method
+
+1. Survey codebase and relevant docs/contracts first.
+2. Provide a concise plan before editing.
+3. Implement incrementally with minimal coherent patches.
+4. Add or update tests for each behavior contract changed.
+5. Run validation (tests/lint/benchmarks/protocol checks as applicable).
+6. Summarize: diff, risks, and rollback approach.
+
+### Required response format for engineering tasks
+
+- Findings
+- Plan
+- Changes made
+- Validation results
+- Risks / tradeoffs
+- Next steps
+
+---
+
+## Change Acceptance Checklist
+
+Before finalizing any substantial change, verify all are true:
+
+- Protocol clarity improved or preserved.
+- Governance strength improved or preserved.
+- Memory continuity and auditability improved or preserved.
+- Execution reliability improved or preserved.
+- Manifestation remains faithful to backend-decided state.
+- No increase in autonomy without control surfaces.
+- Rollback path exists for production-impacting changes.
