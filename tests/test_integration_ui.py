@@ -9,7 +9,8 @@ class TestIntegrationUI(unittest.TestCase):
     def test_dashboard_endpoint(self):
         response = self.client.get("/dashboard")
         self.assertEqual(response.status_code, 200)
-        self.assertIn("AETHERIUM SYNDICATE INSPECTRA", response.text)
+        self.assertIn("AG-OS | Notification Center", response.text)
+        self.assertIn("System Alerts &amp; Notifications", response.text)
 
     def test_governance_endpoints(self):
         response = self.client.get("/governance/approvals")
