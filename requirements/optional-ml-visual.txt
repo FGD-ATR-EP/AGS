@@ -1,0 +1,8 @@
+google-generativeai
+Pillow
+torch
+scipy
+diffusers
+transformers
+accelerate
+sentence-transformers
