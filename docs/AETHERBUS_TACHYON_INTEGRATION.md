@@ -30,7 +30,9 @@ The runtime bus implementation is selected by environment variables.
 | --- | --- | --- |
 | `BUS_IMPLEMENTATION` | `tachyon` | Runtime selector. Supported values: `tachyon`, `extreme`, `legacy`. |
 | `BUS_INTERNAL_ENDPOINT` | `tcp://127.0.0.1:5555` | Internal ZeroMQ endpoint. |
+| `AETHERBUS_TACHYON_INTERNAL_ENDPOINT` | _(alias)_ | Alias accepted for cross-repository deployment templates. |
 | `BUS_EXTERNAL_ENDPOINT` | `ws://127.0.0.1:5556/ws` | External WebSocket bridge endpoint. |
+| `AETHERBUS_TACHYON_EXTERNAL_ENDPOINT` | _(alias)_ | Alias accepted for cross-repository deployment templates. |
 | `BUS_CODEC` | `msgpack` | Envelope payload codec (`msgpack` or `json`). |
 | `BUS_COMPRESSION` | `none` | Compression metadata for transport coordination. |
 | `BUS_TIMEOUT_MS` | `2000` | Publish/receive timeout budget. |
@@ -94,3 +96,10 @@ Phase 1 requires a single correlation policy for every V3 envelope crossing subs
 ## Governance runtime gate
 
 The Tachyon adapter is the canonical transport, but transport alone is not sufficient. Runtime ingress now flows through a central directive runtime that upgrades ingress payloads into `AetherEvent` envelopes, evaluates governance using full envelope context, routes approval when required, emits `governance.decision` / `execution.readiness` events, and only then authorizes lifecycle or vessel processing.
+
+
+## Phase 1 migration notes
+
+- `tachyon` remains the canonical runtime default; `extreme` and `legacy` are compatibility-only modes and now log an explicit migration warning at bus selection time.
+- Subscribers may bind by bus topic or session channel, allowing governance/runtime/UI consumers to preserve the same envelope across internal transport and manifestation fan-out.
+- The Tachyon adapter keeps `correlation_id`, `causation_id`, and `trace_id` intact during publish, local dispatch, and websocket fan-out.

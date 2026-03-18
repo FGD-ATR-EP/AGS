@@ -57,6 +57,22 @@ The system coordinates through the **Sopan Protocol**:
 - Do not hardcode credentials. Use `.env` / secret-manager references such as `${ENV_VAR}`, `env:NAME`, or `secret://path`.
 - Preserve `correlation_id`, `trace_id`, actor identity, and source identity end-to-end for replay and auditability.
 
+## Phase 1 Integration Focus
+
+- **Canonical runtime bus**: `BusFactory` now defaults to `tachyon` and supports config aliases for AetherBus-Tachyon endpoint injection.
+- **Transport contract**: internal traffic uses ZeroMQ semantics, while external manifestation consumers stay behind the WebSocket bridge contract.
+- **Envelope contract**: all cross-subsystem traffic must use `AetherEvent` V3 with origin-created correlation metadata preserved end-to-end.
+- **Migration posture**: legacy bus implementations remain available only as compatibility shims for incremental migration and tests.
+
+## Proposed Next Functions / Extensions
+
+- **Canonical Replay Stream Index**: Add indexed lookups on the canonical stream for deterministic replay and audit joins.
+- **Kernel-to-Bus Contract Harness**: Add compatibility checks across AETHERIUM-GENESIS, PRGX-AG, and AetherBus-Tachyon.
+- **Projection Read Models for Operators**: Add derived operator views without mutating the append-only source of truth.
+- **Execution Scope Registry**: Make vessel capability scopes explicit, governed, and auditable.
+- **Manifestation Directive Catalog**: Define stable backend-authored UI directive shapes for frontend rendering.
+- **Replay Drill Pack**: Add end-to-end replay/rollback scenarios for one governed intent cycle.
+
 ## 🚀 Running the System
 
 ### 1. Environment Setup

@@ -44,7 +44,7 @@
 
 ### 🗄️ System Architecture Diagram (Database-Centric)
 
-โครงสร้างด้านล่างอ้างอิงจาก schema/runtime จริงใน `src/backend/genesis_core/entropy/schemas.py` และ `src/backend/genesis_core/entropy/ledger.py` โดยแสดงลำดับข้อมูลจาก `EntropySubmitRequest` → `EntropyPacket`/nested blocks → `EntropyAssessment` และการ persist ลง `EntropyLedgerEntry` ที่ใช้ hash-chain continuity
+โครงสร้างด้านล่างอ้างอิงจาก schema/runtime จริงใน `src/backend/genesis_core/entropy/schemas.py` และ `src/backend/genesis_core/entropy/ledger.py` โดยแสดงลำดับข้อมูลจาก `EntropySubmitRequest` → `EntropyPacket`/nested blocks → `EntropyAssessment` และการ persist ลง `EntropyLedgerEntry` ที่ใช้ hash-chain continuity พร้อม field เชื่อมโยงสำหรับ correlation/replay ระหว่าง ingress, governance, memory และ manifestation
 
 ```mermaid
 erDiagram
@@ -113,12 +113,16 @@ erDiagram
       int reward_amount
       string artifact_ref
       datetime created_at
+      string correlation_id
+      string trace_id
       string hash_prev
       string hash_self
     }
 ```
 
-**English note:** This diagram mirrors the current runtime schema sources in `src/backend/genesis_core/entropy/schemas.py` and `src/backend/genesis_core/entropy/ledger.py`, connecting request payloads (`EntropySubmitRequest` + `EntropyPacket`) to evaluation (`EntropyAssessment`) and immutable persistence (`EntropyLedgerEntry` + hash-chain links).
+> ระบบใช้งาน `EntropyLedgerEntry` เป็น append-only canonical store และมอง projection/query layers เป็น derived views ที่ต้องอ้างอิง chain เดียวกันเท่านั้น
+
+**English note:** This diagram mirrors the current runtime schema sources in `src/backend/genesis_core/entropy/schemas.py` and `src/backend/genesis_core/entropy/ledger.py`, connecting request payloads (`EntropySubmitRequest` + `EntropyPacket`) to evaluation (`EntropyAssessment`) and immutable persistence (`EntropyLedgerEntry` + hash-chain links + replay join keys).
 
 ---
 
@@ -278,20 +282,20 @@ pytest -q tests/test_region_extractor.py
 ### 4. Future Roadmap / แผนต่อยอดในอนาคต
 
 #### 🇹🇭 ข้อเสนอฟังก์ชัน/แนวทางต่อยอดใหม่ (Thai)
-- **Governed Execution Ledger Views**: สร้าง projection/query API สำหรับตรวจสอบหนึ่ง correlation chain ตั้งแต่ intent ถึง memory commit แบบพร้อมใช้งานในการ audit
-- **Cross-Repository Tachyon Contract Tests**: เพิ่มชุด compatibility tests ระหว่าง AETHERIUM-GENESIS, PRGX-AG และ AetherBus-Tachyon เพื่อกัน schema drift
-- **Directive Replay Export**: รองรับ export/import envelope chain เป็น artifact เดียวสำหรับ incident review และ deterministic replay
-- **Least-Privilege Scope Catalog**: ทำ registry กลางของ `execution_scope.permissions` สำหรับ vessels เพื่อบังคับ capability mapping แบบตรวจสอบได้
-- **Approval Escalation Surfaces**: เพิ่ม operator queue และ escalation policies สำหรับ Tier 2/3 actions ผ่าน kernel gate
-- **Manifestation Read Models**: สร้าง read-optimized backend projections ให้ frontend render directive/state ได้โดยไม่ตีความ business logic เอง
+- **Canonical Replay Stream Index**: เพิ่ม index/query surface สำหรับค้น canonical stream ตาม `correlation_id`, `trace_id`, `topic`, และช่วงเวลา เพื่อให้ deterministic replay ทำงานข้าม subsystem ได้ง่ายขึ้น
+- **Kernel-to-Bus Contract Harness**: สร้าง integration harness สำหรับยืนยันว่า PRGX-AG policy outcomes และ AetherBus-Tachyon envelopes ยังเข้ากันได้ในระดับ schema + transport ก่อน deploy
+- **Projection Read Models for Operators**: เพิ่ม derived views สำหรับ operator console, approval queues, และ incident review โดยไม่แก้ canonical append-only stream
+- **Execution Scope Registry**: สร้าง registry กลางของ `execution_scope.permissions` พร้อม owner, approval tier, และ audit mapping ต่อ vessel
+- **Manifestation Directive Catalog**: นิยาม catalog ของ UI directives ที่ frontend render ได้โดยตรงจาก backend envelope โดยไม่ต้องตีความ semantic ใหม่เอง
+- **Replay Drill Pack**: เพิ่ม scenario packs สำหรับซ้อม replay / rollback ของหนึ่ง intent cycle ตั้งแต่ ingress, governance, execution, memory commit จนถึง manifestation
 
 #### 🇬🇧 Proposed Next Functions / Extensions (English)
-- **Governed Execution Ledger Views**: Add queryable projections for a single correlation chain from intent ingress through memory commit.
-- **Cross-Repository Tachyon Contract Tests**: Add compatibility suites across AETHERIUM-GENESIS, PRGX-AG, and AetherBus-Tachyon to prevent envelope/schema drift.
-- **Directive Replay Export**: Support export/import of a full envelope chain artifact for incident review and deterministic replay.
-- **Least-Privilege Scope Catalog**: Introduce a canonical registry for `execution_scope.permissions` so vessel capabilities remain explicit and auditable.
-- **Approval Escalation Surfaces**: Add operator queues and escalation policies for Tier 2/3 actions at the governance kernel boundary.
-- **Manifestation Read Models**: Provide read-optimized backend projections so the frontend renders directive/state output without re-implementing business logic.
+- **Canonical Replay Stream Index**: Add an index/query surface for canonical stream lookups by `correlation_id`, `trace_id`, `topic`, and time window so deterministic replay works cleanly across subsystems.
+- **Kernel-to-Bus Contract Harness**: Add an integration harness that verifies PRGX-AG policy outcomes and AetherBus-Tachyon envelopes remain schema- and transport-compatible before deployment.
+- **Projection Read Models for Operators**: Add derived views for operator consoles, approval queues, and incident review without mutating the canonical append-only stream.
+- **Execution Scope Registry**: Introduce a canonical registry for `execution_scope.permissions` with owner, approval tier, and audit mappings per vessel.
+- **Manifestation Directive Catalog**: Define a catalog of UI directives that the frontend can render directly from backend-authored envelopes without recreating semantic logic on the client.
+- **Replay Drill Pack**: Add scenario packs for replay / rollback drills across one full intent cycle from ingress through governance, execution, memory commit, and manifestation.
 
 ---
 

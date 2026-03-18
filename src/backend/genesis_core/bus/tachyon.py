@@ -4,7 +4,7 @@ import asyncio
 import inspect
 import logging
 from collections import defaultdict
-from typing import Awaitable, Callable, DefaultDict, Dict, Optional, Set
+from typing import Awaitable, Callable, DefaultDict, Dict, Iterable, Optional, Set
 
 from src.backend.genesis_core.bus.base import BaseAetherBus
 from src.backend.genesis_core.bus.contracts import BusConfig, BusRole
@@ -29,7 +29,7 @@ class AetherBusTachyon(BaseAetherBus):
 
     def __init__(self, config: BusConfig | None = None):
         super().__init__(config=config)
-        self._subscribers: Dict[str, Callable[[AetherEvent], Awaitable[None]]] = {}
+        self._subscribers: DefaultDict[str, Set[Callable[[AetherEvent], Awaitable[None]]]] = defaultdict(set)
         self._global_listeners: Set[Callable[[AetherEvent], Awaitable[None]]] = set()
         self._ws_clients: DefaultDict[str, Set[object]] = defaultdict(set)
         self._zmq_context = None
@@ -109,7 +109,7 @@ class AetherBusTachyon(BaseAetherBus):
         return await self.error(event, "tachyon_delivery_failed")
 
     async def subscribe(self, session_id: str, callback):
-        self._subscribers[session_id] = callback
+        self._subscribers[session_id].add(callback)
         if self._subscriber is not None:
             self._subscriber.setsockopt_string(zmq.SUBSCRIBE, session_id)
 
@@ -143,13 +143,26 @@ class AetherBusTachyon(BaseAetherBus):
                 logger.error("Tachyon internal read failure: %s", exc)
                 await asyncio.sleep(self.config.reconnect.initial_delay_ms / 1000)
 
+    def _candidate_channels(self, event: AetherEvent) -> Iterable[str]:
+        yielded = []
+        for value in (event.topic, event.session_id, event.target.channel, event.origin.channel, "*"):
+            if value and value not in yielded:
+                yielded.append(value)
+                yield value
+
     async def _dispatch_local(self, event: AetherEvent):
         callbacks = []
         if event.session_id == "*" or event.session_id is None:
-            callbacks.extend(self._subscribers.values())
-        elif event.session_id in self._subscribers:
-            callbacks.append(self._subscribers[event.session_id])
+            for registered in self._subscribers.values():
+                callbacks.extend(registered)
+        else:
+            for channel in self._candidate_channels(event):
+                callbacks.extend(self._subscribers.get(channel, set()))
+        seen = set()
         for callback in callbacks:
+            if callback in seen:
+                continue
+            seen.add(callback)
             result = callback(event)
             if inspect.isawaitable(result):
                 await result
@@ -164,8 +177,10 @@ class AetherBusTachyon(BaseAetherBus):
         if not self._ws_clients:
             return
         message = self.serialize_event(event, codec=self.config.codec)
-        channel = event.session_id or "system.broadcast"
-        recipients = set(self._ws_clients.get(channel, set())) | set(self._ws_clients.get("*", set()))
+        recipients = set()
+        candidate_channels = list(self._candidate_channels(event))
+        for channel in candidate_channels:
+            recipients |= set(self._ws_clients.get(channel, set()))
         stale = []
         for websocket in recipients:
             try:
@@ -176,4 +191,5 @@ class AetherBusTachyon(BaseAetherBus):
             except Exception:
                 stale.append(websocket)
         for websocket in stale:
-            await self.unregister_websocket_client(channel, websocket)
+            for channel in candidate_channels:
+                await self.unregister_websocket_client(channel, websocket)
