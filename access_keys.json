@@ -29,6 +29,16 @@
       "created_at": 1770597502.472829,
       "last_used": 1770597502.477831,
       "label": "Test Key"
+    },
+    "ak-36e1ad0614e44db0b94f8be1d2d56996": {
+      "key_id": "ecdf9d68d8ad4d1b8921c56b589c58aa",
+      "access_key": "ak-36e1ad0614e44db0b94f8be1d2d56996",
+      "abe_id": "test-abe-id",
+      "tier": "INTERNAL",
+      "status": "ACTIVE",
+      "created_at": 1774068742.682707,
+      "last_used": 1774068742.778022,
+      "label": "Test Key"
     }
   }
 }

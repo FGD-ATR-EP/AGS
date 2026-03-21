@@ -34,6 +34,7 @@ from src.backend.routers.metrics import router as metrics_router
 from src.backend.routers.metrics import MetricCollector
 from src.backend.routers.entropy import router as entropy_router
 from src.backend.routers.governance import router as governance_router
+from src.backend.routers.diagnostics import router as diagnostics_router
 from src.backend.security.key_manager import KeyManager
 from src.backend.genesis_core.entropy import AkashicTreasury, EntropyReplayStudio, EntropyValidator
 
@@ -88,7 +89,7 @@ app.include_router(aetherium_router)
 app.include_router(metrics_router)
 app.include_router(entropy_router)
 app.include_router(governance_router)
-
+app.include_router(diagnostics_router)
 # Global Services
 auditorium: Optional[AuditoriumService] = None
 background_tasks: list[asyncio.Task] = []
@@ -489,6 +490,13 @@ async def get_manifest():
 app.mount("/gunui", StaticFiles(directory=os.path.join(BASE_DIR, "src/frontend/public/gunui"), html=True), name="gunui")
 app.mount("/icons", StaticFiles(directory=os.path.join(BASE_DIR, "src/frontend/public/icons")), name="icons")
 app.mount("/public", StaticFiles(directory=os.path.join(BASE_DIR, "src/frontend/public")), name="public")
+
+@app.get("/diagnostics")
+async def diagnostics_gateway():
+    """
+    Serve the Aetherium Diagnostics Suite.
+    """
+    return FileResponse(os.path.join(BASE_DIR, "src/frontend/diagnostics.html"))
 
 @app.get("/dashboard")
 async def dashboard():

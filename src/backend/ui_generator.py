@@ -1,30 +1,41 @@
-from mind.reasoning import CognitiveState
 from typing import Dict, Any, Tuple
+
+# Assuming CognitiveState is a generic class or dict for this generator
+class CognitiveStatePlaceholder:
+    def __init__(self, valence: float, arousal: float, entropy: float):
+        self.valence = valence
+        self.arousal = arousal
+        self.entropy = entropy
 
 class ChromaticGenerator:
     """
     The Manifestation of Intent.
-    Translates Logenesis cognitive states into visual parameters (GunUI).
+    Translates cognitive states into visual parameters (GunUI).
     """
     
-    def translate_state(self, state: CognitiveState) -> Dict[str, Any]:
+    def translate_state(self, state: Any) -> Dict[str, Any]:
         """
         Maps cognitive metrics to the Chromatic Language.
         """
+        # Fallback if state is not an object
+        val = getattr(state, 'valence', 0.0)
+        aro = getattr(state, 'arousal', 0.0)
+        ent = getattr(state, 'entropy', 0.0)
+
         # 1. Color Mapping
-        color_hex = self._get_color(state.valence, state.arousal)
+        color_hex = self._get_color(val, aro)
         
         # 2. Form Mapping
-        form_type = "SPHERE" if state.entropy < 0.1 else "VORTEX"
+        form_type = "SPHERE" if ent < 0.1 else "VORTEX"
         
         # 3. Particle Dynamics
-        speed = 0.5 + (state.arousal * 2.0)
+        speed = 0.5 + (aro * 2.0)
         
         return {
             "primary_color": color_hex,
             "geometry": form_type,
             "particle_speed": speed,
-            "turbulence_factor": state.entropy * 10
+            "turbulence_factor": ent * 10
         }
 
     def _get_color(self, valence: float, arousal: float) -> str:

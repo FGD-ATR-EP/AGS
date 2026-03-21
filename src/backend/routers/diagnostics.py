@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from typing import Dict, Any
-from memory.diff_mem import diff_mem
-from governance.simulator import simulator
+from src.backend.memory.diff_mem import diff_mem
+from src.backend.governance.simulator import simulator
 
 router = APIRouter(prefix="/api/diagnostics", tags=["Diagnostics & Governance"])
 

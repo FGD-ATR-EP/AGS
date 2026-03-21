@@ -8,7 +8,7 @@ class PolicySimulator:
     Governance Policy Simulator for the Aetherium Genesis Platform.
     Allows dry-running policies against intents without actual execution.
     """
-    def __init__(self, ruleset_path: str = "d:/AETHERIUM GENESIS/governance/inspirafirma_ruleset.json"):
+    def __init__(self, ruleset_path: str = "d:/AETHERIUM GENESIS/src/backend/governance/inspirafirma_ruleset.json"):
         self.ruleset_path = ruleset_path
 
     def simulate(self, intent_payload: Dict[str, Any]) -> Dict[str, Any]:

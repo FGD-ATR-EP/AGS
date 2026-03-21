@@ -1,1 +1,116 @@
-{"chain": []}
+{
+  "chain": [
+    {
+      "timestamp": 1774068742.8070629,
+      "provenance": {
+        "actor": "governance",
+        "intent_id": null,
+        "causal_link": null,
+        "correlation": {
+          "correlation_id": "corr-client-1",
+          "causation_id": null,
+          "trace_id": "trace-client-1"
+        }
+      },
+      "payload": {
+        "type": "governance_allowed",
+        "action": "cognitive_query",
+        "resource": "mind.lifecycle",
+        "decision": {
+          "status": "ALLOWED",
+          "risk_tier": 0,
+          "reason": "No matching policy rule",
+          "action": "cognitive_query",
+          "resource": "mind.lifecycle",
+          "policy_effect": "ALLOW",
+          "policy_mode": "enforce",
+          "ticket_id": null,
+          "recommendation": null,
+          "ledger_event_type": "governance_allowed"
+        },
+        "policy": {
+          "effect": "ALLOW",
+          "metadata": {
+            "dry_run": false
+          },
+          "mode": "enforce"
+        },
+        "envelope": {
+          "envelope_id": "93f03bb4-0e15-4bb0-9535-5e10c53370d8",
+          "correlation": {
+            "correlation_id": "corr-client-1",
+            "causation_id": null,
+            "trace_id": "trace-client-1"
+          },
+          "session_id": "ae-38dd4c47",
+          "origin": {
+            "service": "api",
+            "subsystem": "body",
+            "instance": null,
+            "channel": "ae-38dd4c47"
+          },
+          "target": {
+            "service": "genesis_core",
+            "subsystem": "mind",
+            "instance": null,
+            "channel": "lifecycle"
+          },
+          "topic": "intent.ingress",
+          "action": "cognitive_query",
+          "resource": "mind.lifecycle",
+          "payload": {
+            "client_message": {
+              "text": "Hello Aether",
+              "correlation_id": "corr-client-1",
+              "trace_id": "trace-client-1"
+            },
+            "text": "Hello Aether",
+            "directive_state": {
+              "session_id": "ae-38dd4c47",
+              "manifest_version": "2026.03-manifestation-v1",
+              "semantic_source": "backend",
+              "correlation_id": "corr-client-1",
+              "trace_id": "trace-client-1",
+              "causation_id": null,
+              "topic": "intent.ingress",
+              "directive_type": "intent_detected"
+            },
+            "action": "cognitive_query",
+            "resource": "mind.lifecycle",
+            "intent_type": "COGNITIVE_QUERY"
+          },
+          "environment": "development",
+          "governance": {
+            "decision": null,
+            "risk_tier": null,
+            "policy_effect": null,
+            "approval_ticket_id": null,
+            "policy_mode": "enforce",
+            "validated": true
+          },
+          "memory": {
+            "ledger_event_type": "intent_ingress",
+            "ledger_record_id": null,
+            "causal_chain": [
+              "corr-client-1"
+            ],
+            "replayable": true
+          }
+        },
+        "timestamp": 1774068742.8064334,
+        "correlation": {
+          "correlation_id": "corr-client-1",
+          "causation_id": null,
+          "trace_id": "trace-client-1"
+        }
+      },
+      "correlation": {
+        "correlation_id": "corr-client-1",
+        "causation_id": null,
+        "trace_id": "trace-client-1"
+      },
+      "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "hash": "bc103966c80694ced36627f0bfe5eed347396c976d59a1135ac23305863f9beb"
+    }
+  ]
+}

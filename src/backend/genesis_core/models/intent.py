@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, Any, Optional
 from datetime import datetime
 import uuid
@@ -21,6 +21,7 @@ class IntentPayload(BaseModel):
     encryption_level: str = Field(default="NONE", description="NONE, AES, CHACHA20")
 
 class SystemIntent(BaseModel):
+    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
     """
     The 'Intent Vector' as defined in the Aetherium-Genesis Blueprint.
     Used for inter-agent communication via AetherBus.
@@ -34,6 +35,3 @@ class SystemIntent(BaseModel):
     context: IntentContext
     correlation_id: Optional[str] = Field(None, description="ID of the intent being replied to")
     signature: Optional[str] = Field(None, description="HMAC Signature for integrity")
-
-    class Config:
-        frozen = True # Make it immutable hashable-like if needed, though Pydantic frozen is distinct
