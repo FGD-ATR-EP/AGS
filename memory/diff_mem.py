@@ -50,4 +50,28 @@ class DiffMem:
         log = self._run_git("log", "--pretty=format:%h - %s (%ci)", "--", filename)
         return log.split("\n") if log else []
 
+    def query_akashic_ledger(self, session_id: str) -> List[Dict[str, Any]]:
+        """
+        Query the Akashic ledger for replay console or ledgers.
+        """
+        log = self._run_git("log", "-n", "10", "--pretty=format:%h|%ci|%s")
+        events = []
+        if log:
+            for line in log.split("\n"):
+                parts = line.split("|")
+                if len(parts) == 3:
+                    events.append({"id": parts[0], "timestamp": parts[1], "summary": parts[2]})
+        return events
+
+    def get_intent_execution_diff(self, intent_id: str) -> Dict[str, Any]:
+        """
+        Fetch Plan, Approved, and Result components of an intent.
+        """
+        return {
+            "intent_id": intent_id,
+            "plan_payload": {"action": "unknown", "target": "System"},
+            "approved_command": {"action": "unknown", "authorized_by": "Validator"},
+            "actual_output": {"status": "mocked", "note": "Diff tracking enabled"}
+        }
+
 diff_mem = DiffMem()

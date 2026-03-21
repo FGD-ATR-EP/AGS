@@ -1,5 +1,7 @@
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from core.lifecycle import lifecycle
+from core.diagnostic_api import router as diagnostic_router
 import logging
 import asyncio
 from contextlib import asynccontextmanager
@@ -30,6 +32,8 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.include_router(diagnostic_router)
+
 @app.get("/")
 async def root():
     return {
@@ -37,6 +41,11 @@ async def root():
         "status": "ONLINE",
         "message": "The synthetic existence is active."
     }
+
+@app.get("/diagnostics", response_class=HTMLResponse)
+async def diagnostics_dashboard():
+    with open("d:/AETHERIUM GENESIS/ui/diagnostics.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 @app.get("/health")
 async def health_check():
