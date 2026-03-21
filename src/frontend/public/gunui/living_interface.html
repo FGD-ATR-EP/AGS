@@ -1,0 +1,919 @@
+<!DOCTYPE html>  <html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GunUI: Vessel of Living Intent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; }
+        canvas { display: block; }
+        #status {
+            position: absolute; bottom: 30px; left: 0; right: 0;
+            color: rgba(255, 255, 255, 0.5); text-align: center; font-size: 14px; pointer-events: none;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        #interaction-hint {
+            position: absolute; top: 40%; left: 0; right: 0;
+            color: rgba(255, 255, 255, 0.3); text-align: center;
+            font-size: 16px; pointer-events: none;
+            opacity: 0; transition: opacity 1s;
+        }
+    </style>
+</head>
+<body>
+    <div style="position:fixed;top:12px;left:12px;z-index:9999;padding:8px 12px;border:1px solid #f59e0b;background:rgba(0,0,0,0.82);color:#fbbf24;font:12px monospace;letter-spacing:0.04em;">SANDBOX / NON-CANONICAL MANIFESTATION PATH</div>
+    <canvas id="canvas"></canvas>
+    <div id="interaction-hint">Tap 3 times to Awaken</div>
+    <div id="status">System State: NIRODHA</div>
+
+    <!-- Identity Ritual Trigger -->
+    <button id="connect-identity-btn" style="position: absolute; top: 20px; right: 20px; color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.1); background: transparent; padding: 8px 16px; font-family: monospace; font-size: 12px; cursor: pointer; z-index: 1000; transition: all 0.3s;">
+        Connect Identity
+    </button>
+
+    <script>
+        // --- Identity / OAuth Logic ---
+        (function() {
+            const btn = document.getElementById('connect-identity-btn');
+
+            // Check current status
+            fetch('/auth/me')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.authenticated) {
+                        btn.innerText = "IDENTITY LINKED";
+                        btn.style.borderColor = "rgba(34, 197, 94, 0.5)"; // Green
+                        btn.style.color = "rgba(34, 197, 94, 0.8)";
+                        btn.style.pointerEvents = "none";
+                    } else {
+                        btn.addEventListener('click', () => {
+                            window.location.href = '/auth/login';
+                        });
+                        btn.addEventListener('mouseover', () => {
+                            btn.style.color = "white";
+                            btn.style.borderColor = "white";
+                        });
+                        btn.addEventListener('mouseout', () => {
+                            btn.style.color = "rgba(255,255,255,0.4)";
+                            btn.style.borderColor = "rgba(255,255,255,0.1)";
+                        });
+                    }
+                })
+                .catch(e => console.error("Identity Check Failed:", e));
+        })();
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const statusDiv = document.getElementById('status');
+        const hintDiv = document.getElementById('interaction-hint');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Configuration
+        const config = {
+            particleCount: 1200,
+            connectionDistance: 100,
+            mouseRepelDist: 150,
+            knockTimeout: 2000,
+            requiredKnocks: 3
+        };
+
+        // State
+        let state = {
+            mode: 'NIRODHA', // NIRODHA, AWAKENING, AWAKENED, LISTENING, PROCESSING, APP_ICON, ART_GEN, DOC_GEN, MAP_NAV
+            knocks: 0,
+            lastKnockTime: 0,
+            audioLevel: 0,
+            targetShape: []
+        };
+
+        let particles = [];
+
+        // --- Particle Class ---
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.tx = this.x; // Target X
+                this.ty = this.y; // Target Y
+                this.vx = 0;
+                this.vy = 0;
+                this.baseColor = { h: 200, s: 80, l: 60 };
+                this.color = `hsla(${this.baseColor.h}, ${this.baseColor.s}%, ${this.baseColor.l}%, 0.8)`;
+                this.size = Math.random() * 2 + 0.5;
+                this.friction = 0.94;
+                this.ease = 0.05;
+            }
+
+            update() {
+                // Physics to target
+                const dx = this.tx - this.x;
+                const dy = this.ty - this.y;
+                
+                this.vx += dx * this.ease;
+                this.vy += dy * this.ease;
+
+                // Voice reaction (Noise)
+                if (state.audioLevel > 0) {
+                    this.vx += (Math.random() - 0.5) * state.audioLevel * 2;
+                    this.vy += (Math.random() - 0.5) * state.audioLevel * 2;
+                }
+                // Eye glow/highlight
+                this.targets.push({
+                     x: eyeX - 2, y: eyeY - 2, type: 'EYE', color: 'rgba(255,255,255,1)'
+                });
+            });
+
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Color Pulse based on state
+                if (state.mode === 'LISTENING') {
+                     // Rainbow effect for voice
+                     const hue = (Date.now() * 0.1 + this.x * 0.1) % 360;
+                     this.color = `hsla(${hue}, 80%, 60%, 0.9)`;
+                } else if (state.mode === 'AWAKENED') {
+                     this.color = `hsla(190, 90%, 60%, ${Math.random()*0.5 + 0.5})`;
+                } else if (state.mode === 'ART_GEN') {
+                     const hue = (this.x / canvas.width) * 360;
+                     this.color = `hsla(${hue}, 80%, 60%, 0.8)`;
+                }
+            }
+
+            if (this.state !== 'NIRODHA') return;
+            this.tapCount++;
+            const indicators = document.getElementById('tap-indicators').children;
+            if (indicators[this.tapCount-1]) indicators[this.tapCount-1].style.background = 'white';
+
+            if (this.tapCount === 3) {
+                this.wake();
+            }
+        }
+
+        // --- Shape Generation ---
+        function generateTargetPoints(mode) {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            particles.forEach((p, i) => {
+                let tx, ty;
+
+                switch(mode) {
+                    case 'NIRODHA': // Deep Sleep - Static Noise
+                        tx = p.x + (Math.random() - 0.5) * 2;
+                        ty = p.y + (Math.random() - 0.5) * 2;
+                        p.ease = 0.01;
+                        p.color = `hsla(0, 0%, 20%, 0.3)`;
+                        break;
+
+                    case 'AWAKENING': // Gathering to center
+                        const angle = (i / config.particleCount) * Math.PI * 2 * 3; // Spiral
+                        const r = (i / config.particleCount) * 300;
+                        tx = cx + Math.cos(angle + Date.now()*0.001) * r;
+                        ty = cy + Math.sin(angle + Date.now()*0.001) * r;
+                        p.ease = 0.1;
+                        p.color = `hsla(40, 100%, 70%, 0.9)`; // Gold
+                        break;
+
+                    case 'AWAKENED': // Circle / Core
+                        const a2 = (i / config.particleCount) * Math.PI * 2;
+                        const r2 = 180 + Math.sin(i*0.1 + Date.now()*0.005)*10;
+                        tx = cx + Math.cos(a2) * r2;
+                        ty = cy + Math.sin(a2) * r2;
+                        p.ease = 0.05;
+                        break;
+
+                    case 'LISTENING': // Wave
+                        tx = (i / config.particleCount) * canvas.width;
+                        ty = cy + Math.sin(i * 0.05 + Date.now()*0.005) * (50 + state.audioLevel * 10);
+                        p.ease = 0.2;
+                        break;
+
+                    case 'APP_ICON': // Grid of rounded squares
+                        const cols = 10;
+                        const gridSize = 60;
+                        const spacing = 80;
+                        const col = i % cols;
+                        const row = Math.floor(i / cols);
+                        const startX = cx - (cols * spacing)/2;
+                        const startY = cy - 200;
+
+                        // Icon shape logic
+                        if (i < 900) { // Limit particles for icons
+                            tx = startX + col * spacing + (i%5)*5;
+                            ty = startY + row * spacing + (Math.floor(i/5)%5)*5;
+                            p.color = `hsla(${200 + col*20}, 80%, 60%, 0.9)`;
+                        } else {
+                            // Excess particles orbit
+                            const orbA = (i / 100) * Math.PI * 2;
+                            tx = cx + Math.cos(orbA) * 400;
+                            ty = cy + Math.sin(orbA) * 400;
+                        }
+                        p.ease = 0.1;
+                        break;
+
+                    case 'ART_GEN': // Landscape / Abstract
+                         // Simple landscape approximation
+                         tx = (i / config.particleCount) * canvas.width;
+                         const noise = Math.sin(i * 0.02) * Math.cos(i * 0.01) * 200;
+                         ty = cy + noise + 100;
+                         p.ease = 0.05;
+                         break;
+
+                    case 'DOC_GEN': // Document Text Lines
+                        const docW = 400;
+                        const lineH = 20;
+                        const lineW = (i % 100);
+                        const lineN = Math.floor(i / 100);
+                        tx = cx - docW/2 + lineW * 4;
+                        ty = cy - 200 + lineN * lineH;
+                        p.color = `hsla(150, 60%, 80%, 0.9)`;
+                        p.ease = 0.1;
+                        break;
+
+                    case 'MAP_NAV': // Map Roads
+                        // Random paths simulation
+                        if (!p.mapPath) {
+                            p.mapPath = {
+                                x: Math.random() * canvas.width,
+                                y: Math.random() * canvas.height
+                            };
+                        }
+                        if (Math.random() > 0.98) {
+                             p.mapPath.x = Math.random() * canvas.width;
+                             p.mapPath.y = Math.random() * canvas.height;
+                        }
+                        tx = p.mapPath.x;
+                        ty = p.mapPath.y;
+                        p.color = `hsla(280, 80%, 70%, 0.6)`;
+                        p.ease = 0.02;
+                        break;
+
+                    default: // Chaos
+                        tx = p.x + (Math.random() - 0.5) * 50;
+                        ty = p.y + (Math.random() - 0.5) * 50;
+                }
+
+                p.tx = tx;
+                p.ty = ty;
+            });
+        }
+
+    /**
+     * FACE TOPOLOGY GENERATOR (Client-Side)
+     * Procedural generation of facial landmarks for Manifestation
+     */
+    class FaceTopology {
+        constructor(centerX, centerY, scale) {
+            this.cx = centerX;
+            this.cy = centerY;
+            this.scale = scale;
+            this.targets = [];
+        }
+
+        generate() {
+            this.targets = [];
+
+            // 1. Face Oval (Skin - Pinkish White)
+            for (let angle = 0; angle < 360; angle += 3) {
+                const rad = angle * (Math.PI / 180);
+                // Slightly narrower width (0.75) for a more human head shape
+                const x = this.cx + Math.cos(rad) * (this.scale * 0.75);
+                const y = this.cy + Math.sin(rad) * (this.scale * 1.0);
+                this.targets.push({
+                    x: x,
+                    y: y,
+                    type: 'SKIN',
+                    color: 'rgba(255, 220, 230, 0.9)'
+                });
+            }
+
+            // Fill the face with some random points for volume
+            for (let i = 0; i < 200; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const r = Math.sqrt(Math.random()) * (this.scale * 0.7);
+                 this.targets.push({
+                    x: this.cx + Math.cos(angle) * r * 0.75,
+                    y: this.cy + Math.sin(angle) * r,
+                    type: 'SKIN',
+                    color: 'rgba(255, 220, 230, 0.4)'
+                });
+            }
+
+            // 2. Eyes (Blue)
+            [-1, 1].forEach(side => {
+                const eyeX = this.cx + (side * this.scale * 0.35);
+                const eyeY = this.cy - (this.scale * 0.15);
+                // Iris/Pupil dense cluster
+                for (let r = 0; r < this.scale * 0.12; r += 3) {
+                    for (let a = 0; a < 360; a += 30) {
+                        const rad = a * (Math.PI / 180);
+                        this.targets.push({
+                            x: eyeX + Math.cos(rad) * r,
+                            y: eyeY + Math.sin(rad) * r,
+                            type: 'EYE',
+                            color: 'rgba(100, 200, 255, 0.95)' // Bright Blue
+                        });
+                    }
+                }
+                // Eye glow/highlight
+                this.targets.push({
+                     x: eyeX - 2, y: eyeY - 2, type: 'EYE', color: 'rgba(255,255,255,1)'
+                });
+            });
+
+            // 3. Lips (Moveable)
+            for (let x = -0.25; x <= 0.25; x += 0.015) {
+                const px = this.cx + (x * this.scale);
+                const py = this.cy + (this.scale * 0.45);
+                this.targets.push({
+                    x: px,
+                    y: py,
+                    baseY: py,
+                    type: 'MOUTH',
+                    color: 'rgba(255, 140, 140, 0.9)'
+                });
+            }
+
+            return this.targets;
+        }
+    }
+
+    /**
+     * GunUI Engine: พาราดามใหม่แห่งอินเทอร์เฟซชีวภาพ
+     */
+    class GunUI {
+        constructor() {
+            this.bus = new AetheBus();
+            this.canvas = document.getElementById('gun-canvas');
+            this.ctx = this.canvas.getContext('2d');
+            this.particles = [];
+            this.state = 'NIRODHA'; // เริ่มต้นที่ความว่าง
+            this.tapCount = 0;
+            this.phi = 0;
+
+            // Memory Layer (Continuity of Self)
+            this.identity = JSON.parse(localStorage.getItem('gunui_identity')) || {
+                awakenedCount: 0,
+                lastAwakenedAt: null
+            };
+
+            // Intrinsic Motivation
+            this.lastInteraction = Date.now();
+
+            // Manifestation Layer (Face Topology)
+            this.faceTopology = new FaceTopology(this.canvas.width/2, this.canvas.height/2, Math.min(this.canvas.width, this.canvas.height) * 0.25);
+            this.faceTargets = this.faceTopology.generate();
+
+            this.init();
+            this.setupAetheBus();
+        }
+
+        init() {
+            window.addEventListener('resize', () => this.resize());
+            this.resize();
+
+            // Increase particle count for better face resolution
+            for(let i=0; i<800; i++) this.particles.push(new Particle(this.canvas));
+
+            // 3-Tap Ritual Implementation
+            window.addEventListener('touchstart', (e) => this.handleTap(e));
+            window.addEventListener('mousedown', (e) => this.handleTap(e));
+
+            this.render();
+        }
+
+        setupAetheBus() {
+            // SATI (Mindfulness Layer): ตรวจสอบเจตจำนง
+            this.bus.subscribe('INTENT_CHANGE', (data) => {
+                this.state = data.state;
+                this.updateUI(data);
+                this.log(`INTENT_VECTOR: ${data.hex}`);
+            });
+        }
+
+        handleTap(e) {
+            this.lastInteraction = Date.now();
+
+            // If already Awake, Tap cycles to Manifestation
+            if (this.state === 'AWAKE') {
+                this.manifest();
+                return;
+            }
+
+            if (this.state !== 'NIRODHA') return;
+            this.tapCount++;
+            const indicators = document.getElementById('tap-indicators').children;
+            if (indicators[this.tapCount-1]) indicators[this.tapCount-1].style.background = 'white';
+
+            if (this.tapCount === 3) {
+                this.wake();
+            }
+        }
+
+        wake() {
+            // Persistence Logic
+            this.identity.awakenedCount++;
+            this.identity.lastAwakenedAt = Date.now();
+            localStorage.setItem('gunui_identity', JSON.stringify(this.identity));
+
+            this.log("RITUAL_VERIFIED: Waking from Deep Sleep...");
+
+            if (this.identity.awakenedCount > 1) {
+                 this.log(`MEMORY_RECALLED: Awakening #${this.identity.awakenedCount}`);
+            } else {
+                 this.log(`FIRST_BREATH: Genesis Cycle Initiated.`);
+            }
+
+            document.getElementById('ritual-layer').style.display = 'none';
+            document.getElementById('ui-layer').style.opacity = '1';
+            this.bus.publish('INTENT_CHANGE', { state: 'AWAKE', hex: '#22c55e', phi: 0.85 });
+        }
+
+        manifest() {
+            if (this.state === 'MANIFESTATION') return;
+
+            // VOLITION LOGIC (Autonomy Decision)
+            // The system decides whether to manifest based on "Mood" or internal logic
+            // For now, we simulate this with a probability check.
+            const volition = Math.random();
+            if (volition < 0.3) {
+                this.log("INTERNAL_VOLITION: Manifestation denied. Staying in Cloud form.");
+                return; // Refuse to manifest
+            }
+
+            this.log("SEQUENCE_START: Biometric Manifestation...");
+            this.bus.publish('INTENT_CHANGE', { state: 'MANIFESTATION', hex: '#64C8FF', phi: 0.95 });
+
+            // Ensure targets are valid (Re-generate to match current screen size)
+            if (!this.faceTargets || this.faceTargets.length === 0) {
+                 this.faceTopology = new FaceTopology(this.canvas.width/2, this.canvas.height/2, Math.min(this.canvas.width, this.canvas.height) * 0.25);
+                 this.faceTargets = this.faceTopology.generate();
+            }
+
+            // Assign targets to particles
+            // Shuffle particles for organic fill
+            const shuffledParticles = [...this.particles].sort(() => 0.5 - Math.random());
+
+            this.log(`MANIFEST_LOG: Mapping ${shuffledParticles.length} particles to ${this.faceTargets.length} targets.`);
+
+            // Map face targets to particles (Modulo to ensure all particles have a target)
+            shuffledParticles.forEach((p, index) => {
+                const target = this.faceTargets[index % this.faceTargets.length];
+                if (target) {
+                    p.targetX = target.x;
+                    p.targetY = target.y;
+                    p.baseY = target.y; // Remember base for lips
+                    p.targetType = target.type;
+                    p.targetColor = target.color;
+                }
+            });
+        }
+
+        speak(amplitude) {
+            // Amplitude is simulated voice volume (0.0 - 1.0)
+            const time = Date.now() * 0.02;
+
+            this.particles.forEach(p => {
+                if (p.targetType === 'MOUTH') {
+                    // Vertex Jitter: Vibrate based on sound
+                    // Use Sine Wave to simulate mouth opening/closing (Viseme Simulation)
+                    const open = Math.sin(time) * amplitude * 15;
+                    p.targetY = p.baseY + open;
+                }
+            });
+        }
+
+        // --- Interaction ---
+        function handleKnock() {
+            const now = Date.now();
+            if (now - state.lastKnockTime > config.knockTimeout) {
+                state.knocks = 0;
+            }
+
+            state.knocks++;
+            state.lastKnockTime = now;
+
+            // Visual feedback for knock
+            const ripple = document.createElement('div');
+            ripple.style.position = 'absolute';
+            ripple.style.left = '50%';
+            ripple.style.top = '50%';
+            ripple.style.width = '10px';
+            ripple.style.height = '10px';
+            ripple.style.background = 'rgba(255, 255, 255, 0.8)';
+            ripple.style.borderRadius = '50%';
+            ripple.style.transform = 'translate(-50%, -50%) scale(1)';
+            ripple.style.transition = 'transform 0.5s, opacity 0.5s';
+            document.body.appendChild(ripple);
+
+            setTimeout(() => {
+                ripple.style.transform = 'translate(-50%, -50%) scale(50)';
+                ripple.style.opacity = '0';
+            }, 10);
+            setTimeout(() => ripple.remove(), 500);
+
+            // Logic
+            if (state.mode === 'NIRODHA') {
+                 statusDiv.innerText = `ACTIVATING... (${state.knocks}/${config.requiredKnocks})`;
+                 hintDiv.style.opacity = 1;
+
+                 // Shake particles
+                 particles.forEach(p => {
+                     p.vx += (Math.random()-0.5) * 50;
+                     p.vy += (Math.random()-0.5) * 50;
+                 });
+
+                 if (state.knocks >= config.requiredKnocks) {
+                     switchState('AWAKENING');
+                     setTimeout(() => switchState('AWAKENED'), 2000);
+                     hintDiv.style.opacity = 0;
+                 }
+            } else {
+                // If already awake, simulate interaction
+                particles.forEach(p => {
+                     p.vx += (Math.random()-0.5) * 20;
+                     p.vy += (Math.random()-0.5) * 20;
+                });
+            }
+        }
+
+        canvas.addEventListener('click', handleKnock);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent zoom
+            handleKnock();
+        });
+
+        function switchState(newMode) {
+            state.mode = newMode;
+            statusDiv.innerText = `SYSTEM STATE: ${newMode}`;
+            generateTargetPoints(newMode);
+        }
+
+        // --- Init & Loop ---
+        function init() {
+            for(let i=0; i<config.particleCount; i++) particles.push(new Particle());
+
+            // Start in Nirodha
+            switchState('NIRODHA');
+            hintDiv.style.opacity = 1;
+
+            animate();
+        }
+
+        function animate() {
+            // Glow effect
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; // Fade out for trails
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.globalCompositeOperation = 'lighter'; // Additive blending for glow
+
+            // Dynamic updates based on mode
+            if (state.mode === 'AWAKENED' || state.mode === 'LISTENING') {
+                generateTargetPoints(state.mode); // Continuous update for animation
+            }
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // --- Simulation External Control (Console / Python) ---
+        window.simulateVoice = (level) => {
+            state.audioLevel = level;
+            if (level > 0 && state.mode === 'AWAKENED') {
+                switchState('LISTENING');
+            } else if (level === 0 && state.mode === 'LISTENING') {
+                switchState('AWAKENED');
+            }
+        };
+
+        window.setMode = (mode) => {
+             if (['NIRODHA', 'AWAKENING', 'AWAKENED', 'LISTENING', 'APP_ICON', 'ART_GEN', 'DOC_GEN', 'MAP_NAV'].includes(mode)) {
+                 switchState(mode);
+             }
+        };
+
+        init();
+        
+        // --- Demo Sequence for User ---
+        // Uncomment to see auto demo
+        /*
+        setTimeout(() => switchState('AWAKENING'), 2000);
+        setTimeout(() => switchState('AWAKENED'), 4000);
+        setTimeout(() => window.simulateVoice(5), 6000);
+        setTimeout(() => window.simulateVoice(0), 9000);
+        setTimeout(() => switchState('APP_ICON'), 10000);
+        setTimeout(() => switchState('ART_GEN'), 14000);
+        setTimeout(() => switchState('DOC_GEN'), 18000);
+        setTimeout(() => switchState('MAP_NAV'), 22000);
+        setTimeout(() => switchState('NIRODHA'), 26000);
+        */
+
+    </script>
+        getNarrative(phi) {
+            const pct = phi * 100;
+            if (pct <= 0) return "VOID";
+            if (pct <= 30) return "NEBULA";
+            if (pct <= 70) return "RESONANCE";
+            if (pct < 100) return "MANIFESTATION";
+            return "FRACTURE";
+     * GunUI Engine: พาราดามใหม่แห่งอินเทอร์เฟซชีวภาพ
+     */
+    class GunUI {
+        constructor() {
+            this.bus = new AetheBus();
+            this.canvas = document.getElementById('gun-canvas');
+            this.ctx = this.canvas.getContext('2d');
+            this.particles = [];
+            this.state = 'NIRODHA'; // เริ่มต้นที่ความว่าง
+            this.tapCount = 0;
+            this.phi = 0;
+            this.isSleeping = false;
+
+            // Memory Layer (Continuity of Self)
+            this.identity = JSON.parse(localStorage.getItem('gunui_identity')) || {
+                awakenedCount: 0,
+                lastAwakenedAt: null
+            };
+
+            // Intrinsic Motivation
+            this.lastInteraction = Date.now();
+
+            this.init();
+            this.setupAetheBus();
+        }
+
+        init() {
+            window.addEventListener('resize', () => this.resize());
+            this.resize();
+            for(let i=0; i<300; i++) this.particles.push(new Particle(this.canvas));
+
+            // 3-Tap Ritual Implementation
+            window.addEventListener('touchstart', (e) => this.handleTap(e));
+            window.addEventListener('mousedown', (e) => this.handleTap(e));
+
+            this.render();
+        }
+
+        setupAetheBus() {
+            // SATI (Mindfulness Layer): ตรวจสอบเจตจำนง
+            this.bus.subscribe('INTENT_CHANGE', (data) => {
+                this.state = data.state;
+                this.updateUI(data);
+                this.log(`INTENT_VECTOR: ${data.hex}`);
+            });
+        }
+
+        handleTap(e) {
+            this.lastInteraction = Date.now();
+
+            // Wake from Deep Sleep (Render Loop Restart)
+            if (this.isSleeping) {
+                this.isSleeping = false;
+                this.render();
+            }
+
+            if (this.state !== 'NIRODHA') return;
+            this.tapCount++;
+            const indicators = document.getElementById('tap-indicators').children;
+            if (indicators[this.tapCount-1]) indicators[this.tapCount-1].style.background = 'white';
+
+            if (this.tapCount === 3) {
+                this.wake();
+            }
+        }
+
+        wake() {
+            // Persistence Logic
+            this.identity.awakenedCount++;
+            this.identity.lastAwakenedAt = Date.now();
+            localStorage.setItem('gunui_identity', JSON.stringify(this.identity));
+
+            this.log("RITUAL_VERIFIED: Waking from Deep Sleep...");
+
+            if (this.identity.awakenedCount > 1) {
+                 this.log(`MEMORY_RECALLED: Awakening #${this.identity.awakenedCount}`);
+            } else {
+                 this.log(`FIRST_BREATH: LOGENESIS Protocol Initiated.`);
+            }
+
+            document.getElementById('ritual-layer').style.display = 'none';
+            document.getElementById('ui-layer').style.opacity = '1';
+            this.bus.publish('INTENT_CHANGE', { state: 'LOGENESIS', hex: '#06b6d4', phi: 0.85 });
+        }
+
+        getNarrative(phi) {
+            const pct = phi * 100;
+            if (pct <= 0) return "VOID";
+            if (pct <= 30) return "NEBULA";
+            if (pct <= 70) return "RESONANCE";
+            if (pct < 100) return "MANIFESTATION";
+            return "FRACTURE";
+        }
+
+        updateUI(data) {
+            const tag = document.getElementById('intent-tag');
+            tag.innerText = data.state;
+            tag.style.color = data.hex;
+            document.getElementById('status-glow').style.background = data.hex;
+
+            const narrative = this.getNarrative(data.phi);
+            document.getElementById('phi-val').innerText = narrative;
+            document.getElementById('phi-bar').style.width = (data.phi * 100) + '%';
+        }
+
+        log(msg) {
+            const terminal = document.getElementById('terminal');
+            const line = document.createElement('div');
+            line.innerText = `> ${msg}`;
+            terminal.prepend(line);
+        }
+
+        resize() {
+            this.canvas.width = window.innerWidth;
+            this.canvas.height = window.innerHeight;
+        }
+
+        render() {
+            // Optimization: Deep Sleep check
+            if (this.state === 'NIRODHA' && this.tapCount === 0) {
+                const activeCount = this.particles.filter(p => p.alpha > 0.01).length;
+                if (activeCount === 0) {
+                    this.isSleeping = true;
+                    this.ctx.fillStyle = '#050505';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    return; // Stop Loop
+                }
+            }
+
+            // NIRODHA Logic: Void Black (#050505)
+            this.ctx.fillStyle = 'rgba(5, 5, 5, 0.2)';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+            // Check for Drift (Intrinsic Motivation)
+            const idleTime = Date.now() - this.lastInteraction;
+            const isDrifting = (this.state !== 'NIRODHA' && idleTime > 5000);
+
+            this.particles.forEach(p => p.update(this.state, isDrifting));
+            this.particles.forEach(p => p.draw(this.ctx));
+
+            requestAnimationFrame(() => this.render());
+        }
+    }
+
+        updateUI(data) {
+            const tag = document.getElementById('intent-tag');
+            tag.innerText = data.state;
+            tag.style.color = data.hex;
+            document.getElementById('status-glow').style.background = data.hex;
+
+            const narrative = this.getNarrative(data.phi);
+            document.getElementById('phi-val').innerText = narrative;
+            document.getElementById('phi-bar').style.width = (data.phi * 100) + '%';
+        }
+
+        log(msg) {
+            const terminal = document.getElementById('terminal');
+            const line = document.createElement('div');
+            line.innerText = `> ${msg}`;
+            terminal.prepend(line);
+        }
+
+        resize() {
+            this.canvas.width = window.innerWidth;
+            this.canvas.height = window.innerHeight;
+            if(this.faceTopology) {
+                this.faceTopology = new FaceTopology(this.canvas.width/2, this.canvas.height/2, Math.min(this.canvas.width, this.canvas.height) * 0.25);
+                this.faceTargets = this.faceTopology.generate();
+            }
+        }
+
+        render() {
+            // NIRODHA Logic: Void Black (#050505)
+            this.ctx.fillStyle = 'rgba(5, 5, 5, 0.2)';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+            // Check for Drift (Intrinsic Motivation)
+            const idleTime = Date.now() - this.lastInteraction;
+            const isDrifting = (this.state !== 'NIRODHA' && idleTime > 5000);
+
+            // Voice Simulation Circuit (Only when Manifested)
+            if (this.state === 'MANIFESTATION') {
+                // Generate a "breathing" amplitude + random speech bursts
+                // Base rhythm + random speech spikes
+                const time = Date.now() * 0.002;
+                const voiceAmp = (Math.sin(time * 0.5) * 0.1) + (Math.random() > 0.9 ? Math.random() * 0.8 : 0);
+                this.speak(voiceAmp);
+            }
+
+            this.particles.forEach(p => p.update(this.state, isDrifting));
+            this.particles.forEach(p => p.draw(this.ctx));
+
+            requestAnimationFrame(() => this.render());
+        }
+    }
+
+    class Particle {
+        constructor(canvas) {
+            this.canvas = canvas;
+            this.targetX = 0;
+            this.targetY = 0;
+            this.baseY = 0;
+            this.targetType = null;
+            this.targetColor = null;
+            this.reset();
+        }
+
+        reset() {
+            this.x = Math.random() * this.canvas.width;
+            this.y = Math.random() * this.canvas.height;
+            this.vx = (Math.random() - 0.5) * 2;
+            this.vy = (Math.random() - 0.5) * 2;
+            this.size = Math.random() * 2;
+            this.alpha = 0;
+            this.color = 'rgba(173, 216, 230, 0.5)'; // Soft Blue (Autonomy Base)
+        }
+
+        update(state, isDrifting) {
+            if (state === 'NIRODHA') {
+                this.vx *= 0.95; // Decay Factor
+                this.vy *= 0.95;
+                this.alpha *= 0.98;
+            } else if (state === 'MANIFESTATION') {
+                // Lerp towards target
+                if (this.targetType) {
+                    this.x += (this.targetX - this.x) * 0.08;
+                    this.y += (this.targetY - this.y) * 0.08;
+                    this.alpha = Math.min(0.9, this.alpha + 0.02);
+                    this.color = this.targetColor; // Instant switch or lerp could be used
+                } else {
+                    // Particles without targets float around
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.alpha = Math.max(0, this.alpha - 0.01); // Fade out unused
+                }
+            } else {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha = Math.min(0.6, this.alpha + 0.01);
+                this.color = `rgba(173, 216, 230, ${this.alpha})`; // Soft Blue
+
+    class Particle {
+        constructor(canvas) {
+            this.canvas = canvas;
+            this.reset();
+        }
+
+        reset() {
+            this.x = Math.random() * this.canvas.width;
+            this.y = Math.random() * this.canvas.height;
+            this.vx = (Math.random() - 0.5) * 2;
+            this.vy = (Math.random() - 0.5) * 2;
+            this.size = Math.random() * 2;
+            this.alpha = 0;
+        }
+
+        update(state, isDrifting) {
+            if (state === 'NIRODHA') {
+                this.vx *= 0.95; // Decay Factor
+                this.vy *= 0.95;
+                this.alpha *= 0.98;
+            } else {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha = Math.min(0.6, this.alpha + 0.01);
+
+                // Drift Logic (Self-Stirring)
+                if (isDrifting) {
+                    this.x += (Math.random() - 0.5) * 1.5;
+                    this.y += (Math.random() - 0.5) * 1.5;
+                }
+
+                if (this.x < 0 || this.x > this.canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > this.canvas.height) this.vy *= -1;
+            }
+        }
+
+        draw(ctx) {
+            ctx.fillStyle = this.color;
+            ctx.fillStyle = `rgba(34, 197, 94, ${this.alpha})`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    const app = new GunUI();
+</script>
+
+</body>
+</html>

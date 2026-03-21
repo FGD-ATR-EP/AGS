@@ -1,0 +1,39 @@
+/app/src/backend/genesis_core/logenesis/gemini_interpreter.py:6: FutureWarning:
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+INFO:BusFactory:🏭 BusFactory: Selecting AetherBusExtreme (Web-Native Mode)
+INFO:ValidatorAgent:Patimokkha Code loaded successfully.
+WARNING:AgioSage:🧠 [AgioSage] Primary Cortex unavailable. Activating Fallback Cortex (Simulated).
+INFO:     Started server process [6464]
+INFO:     Waiting for application startup.
+INFO:LifecycleManager:🌅 [Lifecycle] Initiating Awakening Sequence...
+INFO:AetherBusExtreme:🚀 [AetherBusExtreme] Connected (AsyncIO Mode).
+INFO:LifecycleManager:✨ [Lifecycle] System Awakened (Web-Native). Ready to exist.
+INFO:AetherBusExtreme:🚀 [AetherBusExtreme] Connected (AsyncIO Mode).
+WARNING:src.backend.departments.design.perception.chromatic_interface:Chromatic Sanctum binary not found at: /app/src/backend/departments/design/perception/chromatic_core
+INFO:DualArchitectureAuditor:SentenceTransformers not found/failed. Using SimulatedEmbedder.
+INFO:AuditoriumService:🏛️ Auditorium Service Started
+INFO:AuditoriumService:🏛️ Auditorium Monitor Loop Active
+INFO:AetherBusExtreme:🚀 [AetherBusExtreme] Connected (AsyncIO Mode).
+INFO:HyperSonic:⚡ [HyperSonic] Created Shared Memory: aether_flashpoint_bus (16777216 bytes)
+INFO:HyperSonic:⚡ [HyperSonic Reader] Connected. Head at 0
+ERROR:ChromaticSanctumAuditor:Perception Audit Error: Chromatic Sanctum binary is not available.
+INFO:AetherBusExtreme:🚀 [AetherBusExtreme] Connected (AsyncIO Mode).
+INFO:AetherServer:Health Broadcast Loop Started
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:LifecycleManager:🌙 [Lifecycle] Entering Nirodha...
+INFO:AetherBusExtreme:🛑 [AetherBusExtreme] Closed.
+INFO:AetherBusExtreme:🛑 [AetherBusExtreme] Closed.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [6464]
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 1 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

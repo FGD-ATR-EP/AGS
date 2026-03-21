@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IntentToMotionContract",
+  "type": "object",
+  "properties": {
+    "intent_vector": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "motion_class": {
+      "type": "string",
+      "enum": ["emergence", "stabilization", "oscillation"]
+    },
+    "energy": {
+      "type": "number"
+    },
+    "temporal_profile": {
+      "type": "string"
+    }
+  },
+  "required": ["intent_vector", "motion_class"]
+}

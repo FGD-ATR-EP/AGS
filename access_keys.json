@@ -1,0 +1,34 @@
+{
+  "keys": {
+    "ak-57f8447197994140b8774f0ae63b440a": {
+      "key_id": "ac28f10a0a1840f38cedbfe1ab1caef4",
+      "access_key": "ak-57f8447197994140b8774f0ae63b440a",
+      "abe_id": "test-abe-id",
+      "tier": "INTERNAL",
+      "status": "ACTIVE",
+      "created_at": 1770596397.152094,
+      "last_used": 1770596397.157418,
+      "label": "Test Key"
+    },
+    "ak-00a2c6c5738d415281698828e6307684": {
+      "key_id": "3e1342c6d3b04bd88337db35eb305948",
+      "access_key": "ak-00a2c6c5738d415281698828e6307684",
+      "abe_id": "test-abe-id",
+      "tier": "INTERNAL",
+      "status": "ACTIVE",
+      "created_at": 1770596928.686524,
+      "last_used": 1770596928.69169,
+      "label": "Test Key"
+    },
+    "ak-9a34714771584890bbe9a470c2d96bd4": {
+      "key_id": "e94146574b854479932d8bb4b89299be",
+      "access_key": "ak-9a34714771584890bbe9a470c2d96bd4",
+      "abe_id": "test-abe-id",
+      "tier": "INTERNAL",
+      "status": "ACTIVE",
+      "created_at": 1770597502.472829,
+      "last_used": 1770597502.477831,
+      "label": "Test Key"
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-03-18T00:00:00Z",
+  "canonical_envelope": "AetherEvent",
+  "versions": [
+    {
+      "protocol_version": "2026.03",
+      "envelope_version": "3.0.0",
+      "producer_support": ["2026.03"],
+      "consumer_support": ["2026.03"],
+      "status": "active",
+      "operations": [
+        "intent_ingress",
+        "intent_detected",
+        "governance_validate",
+        "execution_dispatch",
+        "memory_commit",
+        "manifestation_emit"
+      ],
+      "required_fields": [
+        "envelope_version",
+        "protocol_version",
+        "correlation_id",
+        "origin",
+        "target",
+        "topic",
+        "payload",
+        "governance",
+        "memory",
+        "timestamps",
+        "content"
+      ],
+      "governance_fields": [
+        "decision",
+        "risk_tier",
+        "policy_effect",
+        "policy_mode",
+        "approval_ticket_id",
+        "validated"
+      ],
+      "content_fields": [
+        "content_type",
+        "content_encoding",
+        "content_compression",
+        "codec"
+      ],
+      "deprecated_fields": [
+        "timestamp",
+        "trace_id",
+        "execution",
+        "memory_commit",
+        "manifestation.surface"
+      ],
+      "migration_notes": [
+        "Legacy session_id-based events are upgraded by deriving topic and fallback correlation_id from session_id.",
+        "Legacy state/intent/manifestation/error blocks are normalized into payload while compatibility accessors remain available.",
+        "AkashicEnvelope is retained as a wrapper around AetherEvent for compatibility and should not be used as a new source-of-truth schema."
+      ]
+    }
+  ]
+}

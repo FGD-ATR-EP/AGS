@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHERIUM OVERSEER | Control Plane</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #000; color: #fff; font-family: 'Courier New', monospace; }
+        .critical { color: #ef4444; }
+        .active { color: #22c55e; }
+        .suspended { color: #eab308; }
+        .glass-panel { background: rgba(30, 30, 30, 0.9); border: 1px solid #444; padding: 20px; }
+    </style>
+</head>
+<body class="p-4">
+
+    <!-- TOP BAR -->
+    <div class="flex justify-between items-center border-b border-gray-800 pb-4 mb-8">
+        <h1 class="text-2xl font-bold tracking-widest text-red-500">OVERSEER CONTROL</h1>
+        <div class="text-xs text-gray-500">ROOT ACCESS GRANTED</div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- COL 1: REAL-TIME FLOW (Mock Visual for now, driven by Metrics) -->
+        <div class="glass-panel col-span-2">
+            <h2 class="text-lg text-gray-300 mb-4">NEURAL FLOW MAP</h2>
+            <div id="flow-viz" class="h-64 bg-gray-900 rounded flex items-center justify-center border border-gray-700 relative overflow-hidden">
+                <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <span class="text-gray-600 text-xs">[AetherBus Visualization Placeholder]</span>
+                <!-- In V2 this would be the Canvas Particle System -->
+            </div>
+            <div class="flex justify-between mt-4 text-xs text-gray-400">
+                <span>ACTIVE NODES: <span id="node-count" class="text-white">0</span></span>
+                <span>GLOBAL ENTROPY: <span id="entropy-val" class="text-white">0.05</span></span>
+            </div>
+        </div>
+
+        <!-- COL 2: KEY & SUBSCRIPTION MANAGEMENT -->
+        <div class="glass-panel">
+            <h2 class="text-lg text-gray-300 mb-4">SUBSCRIPTION ENFORCER</h2>
+            <div class="space-y-4" id="keyList">
+                <!-- KEY ITEM TEMPLATE -->
+                <div class="bg-gray-800 p-3 rounded border border-gray-700">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-xs text-cyan-400 font-bold">Project Orion</span>
+                        <span class="text-xs active font-mono">ACTIVE</span>
+                    </div>
+                    <div class="text-xs text-gray-500 font-mono mb-2">ID: abe-7f91a...</div>
+                    <div class="flex gap-2">
+                        <button class="bg-red-900 text-red-200 text-xs px-2 py-1 rounded hover:bg-red-700">REVOKE</button>
+                        <button class="bg-yellow-900 text-yellow-200 text-xs px-2 py-1 rounded hover:bg-yellow-700">SUSPEND</button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 p-3 rounded border border-gray-700 opacity-50">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-xs text-gray-400 font-bold">Test Node A</span>
+                        <span class="text-xs suspended font-mono">SUSPENDED</span>
+                    </div>
+                    <div class="text-xs text-gray-500 font-mono mb-2">ID: abe-b2c1...</div>
+                    <div class="flex gap-2">
+                        <button class="bg-green-900 text-green-200 text-xs px-2 py-1 rounded hover:bg-green-700">ACTIVATE</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 border-t border-gray-700 pt-4">
+                <h3 class="text-sm text-gray-400 mb-2">EMERGENCY PROTOCOLS</h3>
+                <button class="w-full bg-red-600 hover:bg-red-500 text-white py-2 rounded font-bold text-xs tracking-wider">
+                    EXECUTE NIRODHA (GLOBAL PAUSE)
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Simple polling for metrics to animate "Flow Map" text
+        const ws = new WebSocket(`ws://${location.host}/ws/v3/metrics`);
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === "METRICS_UPDATE") {
+                 document.getElementById('node-count').innerText = data.active_sessions;
+                 // Simulate Entropy wiggle
+                 document.getElementById('entropy-val').innerText = (Math.random() * 0.1).toFixed(3);
+            }
+        };
+
+        // Note: Real Key Management API calls would go here.
+        // For V1, this UI is a visual prototype of the Control Plane.
+    </script>
+</body>
+</html>

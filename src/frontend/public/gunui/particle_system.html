@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aetherium Manifest — Digital Lifeform Dashboard</title>
+    <style>
+        :root {
+            --void-black: #050505;
+            --akashic-blue: #0a0a2a;
+            --inspira-gold: #ffd700;
+            --rsi-purple: #800080;
+            --consciousness-cyan: #00ffff;
+            --neural-green: #00ff88;
+            --text-dim: rgba(255, 255, 255, 0.64);
+            --danger: #ff5c5c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            font-family: "Segoe UI", "Noto Sans Thai", sans-serif;
+            background: var(--void-black);
+            color: #fff;
+        }
+
+        #architecture-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #manifestation-area {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(64vw, 960px);
+            aspect-ratio: 16 / 10;
+            border-radius: 20px;
+            overflow: hidden;
+            z-index: 20;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(5, 5, 5, 0.5);
+            backdrop-filter: blur(1px);
+        }
+
+        #particle-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .panel {
+            position: absolute;
+            z-index: 100;
+            background: rgba(10, 10, 40, 0.84);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.32);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.36);
+        }
+
+        #control-panel {
+            top: 20px;
+            left: 20px;
+            width: min(320px, 88vw);
+            padding: 14px;
+        }
+
+        #layers-visualization {
+            top: 20px;
+            right: 20px;
+            width: min(280px, 84vw);
+            border-color: rgba(128, 0, 128, 0.6);
+            padding: 14px;
+        }
+
+        #rsi-console {
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            height: 150px;
+            padding: 12px;
+            border-color: rgba(255, 215, 0, 0.5);
+            overflow-y: auto;
+            font-family: "Courier New", monospace;
+            font-size: 12px;
+        }
+
+        #akashic-timeline {
+            bottom: 188px;
+            right: 20px;
+            width: min(320px, 84vw);
+            height: 106px;
+            padding: 10px;
+            border-color: rgba(255, 215, 0, 0.5);
+        }
+
+        #firma-badge {
+            position: absolute;
+            top: 20px;
+            right: 316px;
+            z-index: 110;
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            font-size: 11px;
+            color: #fff;
+            background: rgba(128, 0, 128, 0.82);
+            border: 2px solid var(--inspira-gold);
+        }
+
+        .panel-section {
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.18);
+        }
+
+        .panel-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .panel-title {
+            margin-bottom: 8px;
+            color: var(--consciousness-cyan);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+        }
+
+        .status-active {
+            background: var(--neural-green);
+            animation: pulse 2s infinite;
+        }
+
+        .status-inactive {
+            background: #666;
+        }
+
+        .status-processing {
+            background: var(--inspira-gold);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .energy-track {
+            margin-top: 6px;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .energy-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #00ff00 0%, #ffff00 50%, #ff0000 100%);
+            transition: width 0.2s linear;
+        }
+
+        .small-text {
+            color: var(--text-dim);
+            font-size: 11px;
+        }
+
+        .layer-item {
+            margin: 8px 0;
+            padding: 8px;
+            border-left: 3px solid;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .layer-1 { border-color: #ff6b6b; }
+        .layer-2 { border-color: #4ecdc4; }
+        .layer-3 { border-color: #ffd166; }
+        .layer-4 { border-color: #06d6a0; }
+        .layer-5 { border-color: #118ab2; }
+
+        .console-line {
+            margin: 3px 0;
+            color: var(--text-dim);
+        }
+
+        .console-line.system { color: var(--consciousness-cyan); }
+        .console-line.rsi { color: #c27df0; }
+        .console-line.akashic { color: var(--inspira-gold); }
+        .console-line.error { color: var(--danger); }
+
+        .timeline-track {
+            margin: 12px 0;
+            height: 4px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.16);
+            position: relative;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            top: -3px;
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: var(--neural-green);
+        }
+
+        button {
+            pointer-events: auto;
+            padding: 5px 10px;
+            background: var(--akashic-blue);
+            color: #fff;
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        @media (max-width: 1100px) {
+            #layers-visualization,
+            #firma-badge,
+            #akashic-timeline { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div style="position:fixed;top:12px;left:12px;z-index:9999;padding:8px 12px;border:1px solid #f59e0b;background:rgba(0,0,0,0.82);color:#fbbf24;font:12px monospace;letter-spacing:0.04em;">SANDBOX / NON-CANONICAL MANIFESTATION PATH</div>
+    <canvas id="architecture-canvas"></canvas>
+
+    <div id="manifestation-area">
+        <canvas id="particle-canvas"></canvas>
+    </div>
+
+    <div id="control-panel" class="panel">
+        <div class="panel-section">
+            <div class="panel-title">Aetherium Manifest v3.0</div>
+            <div class="status-indicator">
+                <div class="status-dot status-active"></div>
+                <span>System: <span id="system-state">ONLINE</span></span>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-title">Cognitive Architecture</div>
+            <div class="status-indicator"><div id="perception-status" class="status-dot status-active"></div><span>Perception: <span id="perception-text">Active</span></span></div>
+            <div class="status-indicator"><div id="reasoning-status" class="status-dot status-active"></div><span>Reasoning: <span id="reasoning-text">Active</span></span></div>
+            <div class="status-indicator"><div id="rsi-status" class="status-dot status-processing"></div><span>RSI: <span id="rsi-text">Processing</span></span></div>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-title">Energy Management</div>
+            <div>Cognitive Load: <span id="cognitive-load">0.00</span></div>
+            <div class="energy-track"><div id="energy-fill" class="energy-fill"></div></div>
+            <div style="margin-top: 8px;" id="energy-status" class="small-text">Balanced</div>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-title">System Directives</div>
+            <div id="current-directive" class="small-text">Awaiting Akashic Envelope</div>
+            <div style="margin-top: 10px; display:flex; gap:8px;">
+                <button id="toggle-spiritrest" type="button">Toggle SpiritRest</button>
+                <button id="simulate-envelope" type="button">Inject Envelope</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="layers-visualization" class="panel">
+        <div class="panel-title" style="color:#d39bff;">Architecture Layers</div>
+        <div class="layer-item layer-1"><div><b>Text → Knowledge</b></div><div class="small-text">Tokenization → Sentiment → Semantic Mapping</div></div>
+        <div class="layer-item layer-2"><div><b>Cognitive Network</b></div><div class="small-text" id="metrics-line">ASPL: 3.2 | CC: 0.78 | Modularity: 0.65</div></div>
+        <div class="layer-item layer-3"><div><b>Akashic Envelope</b></div><div class="small-text">Immutable Experience Records</div></div>
+        <div class="layer-item layer-4"><div><b>RSI Loop</b></div><div class="small-text">Audit → Execute → Analyze → Learn</div></div>
+        <div class="layer-item layer-5"><div><b>Self-Organizing AI</b></div><div class="small-text">Modular | Adaptive | Resilient</div></div>
+    </div>
+
+    <div id="akashic-timeline" class="panel">
+        <div class="small-text" style="color:var(--inspira-gold)">Akashic Timeline</div>
+        <div class="timeline-track">
+            <div class="timeline-marker" style="left: 10%" title="Experience #42"></div>
+            <div class="timeline-marker" style="left: 30%" title="Insight #17"></div>
+            <div class="timeline-marker" style="left: 50%" title="Learning Cycle #8"></div>
+            <div class="timeline-marker" style="left: 70%" title="Wisdom Gem #3"></div>
+            <div class="timeline-marker" style="left: 90%" title="Current Envelope"></div>
+        </div>
+        <div class="small-text" style="text-align:center;">Immutable Experience Records: <span id="akashic-count">128</span></div>
+    </div>
+
+    <div id="rsi-console" class="panel">
+        <div class="console-line system">[SYSTEM] Aetherium Manifest initialized</div>
+        <div class="console-line rsi">[RSI] Engine online — Recursive Self-Improvement active</div>
+        <div class="console-line akashic">[AKASHIC] Awaiting immutable envelope stream...</div>
+    </div>
+
+    <div id="firma-badge" title="InspiraFirma Ruleset Compliant">FIRMA</div>
+
+    <script>
+        const SYSTEM_STATE = {
+            VOID: "VOID",
+            RESONATING: "RESONATING",
+            SPIRIT_REST: "SPIRIT_REST"
+        };
+
+        class DSLInterpreter {
+            parse(dsl, viewport) {
+                return {
+                    baseShape: dsl.base_shape || "sphere",
+                    chromaticMode: dsl.chromatic_mode || "BIT_24_RGB",
+                    palette: {
+                        primary: dsl.color_palette?.primary || "#00ffff",
+                        secondary: dsl.color_palette?.secondary || "#800080"
+                    },
+                    physics: {
+                        turbulence: Number(dsl.particle_physics?.turbulence ?? 0.2),
+                        flowDirection: dsl.particle_physics?.flow_direction || "neutral"
+                    },
+                    intentCategory: dsl.intent_category || SYSTEM_STATE.RESONATING,
+                    targetPositions: this.calculateShape(dsl.base_shape || "sphere", viewport)
+                };
+            }
+
+            calculateShape(shapeType, viewport) {
+                const { width, height, count } = viewport;
+                const cx = width / 2;
+                const cy = height / 2;
+                const min = Math.min(width, height);
+                const pts = [];
+
+                if (shapeType === "spiral_vortex") {
+                    for (let i = 0; i < count; i++) {
+                        const t = i / count;
+                        const angle = t * Math.PI * 22;
+                        const r = t * min * 0.38;
+                        pts.push({ x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
+                    }
+                    return pts;
+                }
+
+                if (shapeType === "nebula") {
+                    for (let i = 0; i < count; i++) {
+                        const cluster = i % 5;
+                        const phase = i / count * Math.PI * 2;
+                        const coreR = min * (0.1 + cluster * 0.04);
+                        pts.push({
+                            x: cx + Math.cos(phase * (cluster + 1)) * coreR,
+                            y: cy + Math.sin(phase * (cluster + 1)) * coreR
+                        });
+                    }
+                    return pts;
+                }
+
+                for (let i = 0; i < count; i++) {
+                    const phi = i / count * Math.PI * 2;
+                    const r = min * 0.26;
+                    pts.push({ x: cx + Math.cos(phi) * r, y: cy + Math.sin(phi) * r });
+                }
+                return pts;
+            }
+        }
+
+        class EnergyManager {
+            constructor(onSpiritRest) {
+                this.onSpiritRest = onSpiritRest;
+                this.currentLoad = 0;
+                this.isResting = false;
+                this.shadowMemory = [];
+                this.channelWeight = { visual: 1.0, semantic: 1.25, auditory: 0.8, system: 0.6 };
+            }
+
+            applyEnergyEnvelope(payload = {}) {
+                const ppal = this.applyPPAL(payload);
+                const w = this.channelWeight[ppal.channel] ?? 1;
+                const next = ppal.intensity * w;
+                this.currentLoad = Math.min(1, Math.max(0, next * (1 + this.currentLoad ** 2)));
+                this.shadowMemory.push({ at: Date.now(), channel: ppal.channel, load: this.currentLoad });
+                if (this.shadowMemory.length > 120) this.shadowMemory.shift();
+
+                if (this.currentLoad >= 0.95) this.enterSpiritRest();
+                return this.currentLoad;
+            }
+
+            applyPPAL(payload) {
+                return {
+                    channel: payload.channel || "system",
+                    intensity: Math.min(1, Math.max(0, Number(payload.intensity ?? payload.load ?? 0)))
+                };
+            }
+
+            enterSpiritRest() {
+                this.isResting = true;
+                this.onSpiritRest?.();
+            }
+
+            exitSpiritRest() {
+                this.isResting = false;
+                this.currentLoad = Math.min(this.currentLoad, 0.35);
+            }
+        }
+
+        class DumbParticleRenderer {
+            constructor(canvas, count = 650) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext("2d");
+                this.particles = [];
+                this.directives = null;
+                this.resting = false;
+                this.spring = 0.0012;
+
+                this.resize();
+                window.addEventListener("resize", () => this.resize());
+
+                for (let i = 0; i < count; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        vx: 0,
+                        vy: 0,
+                        size: Math.random() * 2 + 0.4,
+                        targetX: this.canvas.width / 2,
+                        targetY: this.canvas.height / 2
+                    });
+                }
+            }
+
+            resize() {
+                this.canvas.width = this.canvas.clientWidth;
+                this.canvas.height = this.canvas.clientHeight;
+            }
+
+            applyDirective(directives) {
+                this.directives = directives;
+                this.resting = false;
+                this.spring = directives.physics.flowDirection === "centripetal" ? 0.0016 : 0.0012;
+
+                for (let i = 0; i < this.particles.length; i++) {
+                    const t = directives.targetPositions[i % directives.targetPositions.length];
+                    this.particles[i].targetX = t.x;
+                    this.particles[i].targetY = t.y;
+                }
+            }
+
+            setResting(v) {
+                this.resting = v;
+            }
+
+            tick() {
+                const ctx = this.ctx;
+                ctx.fillStyle = this.resting ? "rgba(5,5,5,0.34)" : "rgba(5,5,5,0.15)";
+                ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                if (!this.directives) return;
+
+                const primary = this.directives.palette.primary;
+                const secondary = this.directives.palette.secondary;
+                const turbulence = this.resting ? 0.002 : this.directives.physics.turbulence * 0.04;
+
+                for (let i = 0; i < this.particles.length; i++) {
+                    const p = this.particles[i];
+                    const dx = p.targetX - p.x;
+                    const dy = p.targetY - p.y;
+
+                    p.vx += dx * this.spring;
+                    p.vy += dy * this.spring;
+                    p.vx += (Math.random() - 0.5) * turbulence;
+                    p.vy += (Math.random() - 0.5) * turbulence;
+                    p.vx *= this.resting ? 0.84 : 0.92;
+                    p.vy *= this.resting ? 0.84 : 0.92;
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    ctx.fillStyle = this.resting ? "rgba(255,255,255,0.08)" : (i % 2 ? primary : secondary);
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, this.resting ? p.size * 0.6 : p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        class ArchitectureBackgroundRenderer {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext("2d");
+                this.time = 0;
+                this.resize();
+                window.addEventListener("resize", () => this.resize());
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            tick(metrics) {
+                this.time += 0.01;
+                const { width, height } = this.canvas;
+                const ctx = this.ctx;
+
+                ctx.clearRect(0, 0, width, height);
+                ctx.strokeStyle = "rgba(0, 255, 136, 0.08)";
+                ctx.lineWidth = 0.7;
+
+                for (let i = 0; i < 32; i++) {
+                    const p = i / 32;
+                    const x1 = (p * width + Math.sin(this.time + p * 12) * 80 + width) % width;
+                    const y1 = (p * height + Math.cos(this.time * 0.8 + p * 10) * 60 + height) % height;
+                    const x2 = ((1 - p) * width + Math.cos(this.time * 0.7 + p * 15) * 110 + width) % width;
+                    const y2 = ((1 - p) * height + Math.sin(this.time * 0.9 + p * 11) * 90 + height) % height;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                }
+
+                const cx = width / 2;
+                const cy = height / 2;
+                const radius = 96 + (metrics.cc * 20);
+                ctx.strokeStyle = "rgba(128, 0, 128, 0.28)";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                for (let i = 0; i < 20; i++) {
+                    const angle = (i / 20) * Math.PI * 2 + this.time * 0.15;
+                    const ex = cx + Math.cos(angle) * (radius + 44);
+                    const ey = cy + Math.sin(angle) * (radius + 44);
+                    ctx.fillStyle = "rgba(255,215,0,0.15)";
+                    ctx.beginPath();
+                    ctx.arc(ex, ey, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        class ManifestController {
+            constructor() {
+                this.state = {
+                    system: SYSTEM_STATE.VOID,
+                    perceptionActive: true,
+                    reasoningActive: true,
+                    rsiActive: true,
+                    cognitiveLoad: 0,
+                    spiritRest: false,
+                    currentDirective: null,
+                    akashicRecords: 128,
+                    networkMetrics: { aspl: 3.2, cc: 0.78, modularity: 0.65 }
+                };
+
+                this.ws = null;
+                this.interpreter = new DSLInterpreter();
+                this.energy = new EnergyManager(() => this.enterSpiritRest());
+                this.backgroundRenderer = new ArchitectureBackgroundRenderer(document.getElementById("architecture-canvas"));
+                this.particleRenderer = new DumbParticleRenderer(document.getElementById("particle-canvas"));
+
+                this.bindUI();
+                this.initWebSocket();
+                this.injectDemoEnvelope();
+                this.animate();
+            }
+
+            bindUI() {
+                document.getElementById("toggle-spiritrest").addEventListener("click", () => {
+                    if (this.state.spiritRest) {
+                        this.exitSpiritRest();
+                        this.log("system", "[SYSTEM] Exiting SpiritRest mode");
+                    } else {
+                        this.enterSpiritRest();
+                        this.log("system", "[SYSTEM] Entering SpiritRest mode");
+                    }
+                });
+
+                document.getElementById("simulate-envelope").addEventListener("click", () => {
+                    this.injectDemoEnvelope();
+                });
+            }
+
+            initWebSocket() {
+                const protocol = location.protocol === "https:" ? "wss" : "ws";
+                const wsUrl = `${protocol}://${location.host || "localhost:8000"}/aetherbus`;
+                try {
+                    this.ws = new WebSocket(wsUrl);
+                    this.ws.onopen = () => {
+                        this.state.system = SYSTEM_STATE.RESONATING;
+                        this.log("system", `[SYSTEM] Connected to ${wsUrl}`);
+                    };
+                    this.ws.onclose = () => {
+                        this.state.system = SYSTEM_STATE.VOID;
+                        this.log("error", "[SYSTEM] AetherBus disconnected");
+                    };
+                    this.ws.onmessage = (event) => this.onMessage(event.data);
+                } catch {
+                    this.log("error", "[SYSTEM] WebSocket bootstrap failed, demo-only mode");
+                }
+            }
+
+            onMessage(raw) {
+                let message;
+                try {
+                    message = JSON.parse(raw);
+                } catch {
+                    return;
+                }
+
+                switch (message.type) {
+                    case "COGNITIVE_DSL": {
+                        this.applyDSL(message.payload || {});
+                        break;
+                    }
+                    case "ENERGY_STATE": {
+                        const load = this.energy.applyEnergyEnvelope(message.payload || {});
+                        this.state.cognitiveLoad = load;
+                        break;
+                    }
+                    case "COGNITIVE_METRICS": {
+                        this.state.networkMetrics = {
+                            aspl: Number(message.payload?.aspl ?? this.state.networkMetrics.aspl),
+                            cc: Number(message.payload?.cc ?? this.state.networkMetrics.cc),
+                            modularity: Number(message.payload?.modularity ?? this.state.networkMetrics.modularity)
+                        };
+                        break;
+                    }
+                    case "AKASHIC_EVENT": {
+                        this.state.akashicRecords += 1;
+                        this.log("akashic", `[AKASHIC] Envelope #${this.state.akashicRecords} committed`);
+                        break;
+                    }
+                    case "SYSTEM_COMMAND": {
+                        if (message.command === "ENTER_NIRODHA") this.enterSpiritRest();
+                        if (message.command === "EXIT_NIRODHA") this.exitSpiritRest();
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+
+            applyDSL(dsl) {
+                const directives = this.interpreter.parse(dsl, {
+                    width: this.particleRenderer.canvas.width,
+                    height: this.particleRenderer.canvas.height,
+                    count: this.particleRenderer.particles.length
+                });
+
+                this.state.currentDirective = directives.baseShape;
+                this.state.system = directives.intentCategory;
+                this.particleRenderer.applyDirective(directives);
+                this.log("rsi", `[RSI] Directive received: ${directives.baseShape} / ${directives.chromaticMode}`);
+            }
+
+            enterSpiritRest() {
+                this.state.spiritRest = true;
+                this.state.system = SYSTEM_STATE.SPIRIT_REST;
+                this.particleRenderer.setResting(true);
+            }
+
+            exitSpiritRest() {
+                this.state.spiritRest = false;
+                this.energy.exitSpiritRest();
+                this.state.cognitiveLoad = this.energy.currentLoad;
+                this.state.system = SYSTEM_STATE.RESONATING;
+                this.particleRenderer.setResting(false);
+            }
+
+            injectDemoEnvelope() {
+                this.applyDSL({
+                    base_shape: "spiral_vortex",
+                    color_palette: { primary: "#800080", secondary: "#00ffff" },
+                    particle_physics: { turbulence: 0.35, flow_direction: "centripetal" },
+                    chromatic_mode: "BIT_24_RGB",
+                    intent_category: SYSTEM_STATE.RESONATING
+                });
+                this.state.cognitiveLoad = this.energy.applyEnergyEnvelope({ channel: "semantic", intensity: 0.34 });
+                this.state.networkMetrics = {
+                    aspl: 3.2,
+                    cc: 0.78,
+                    modularity: 0.65
+                };
+                this.log("system", "[MANIFEST] Demo envelope injected");
+            }
+
+            log(kind, text) {
+                const consoleBox = document.getElementById("rsi-console");
+                const line = document.createElement("div");
+                line.className = `console-line ${kind}`;
+                line.textContent = text;
+                consoleBox.appendChild(line);
+                while (consoleBox.children.length > 16) consoleBox.removeChild(consoleBox.firstChild);
+                consoleBox.scrollTop = consoleBox.scrollHeight;
+            }
+
+            updateUI() {
+                const s = this.state;
+                document.getElementById("system-state").textContent = s.system;
+
+                document.getElementById("perception-status").className = `status-dot ${s.perceptionActive ? "status-active" : "status-inactive"}`;
+                document.getElementById("reasoning-status").className = `status-dot ${s.reasoningActive ? "status-active" : "status-inactive"}`;
+                document.getElementById("rsi-status").className = `status-dot ${s.rsiActive ? "status-processing" : "status-inactive"}`;
+
+                document.getElementById("perception-text").textContent = s.perceptionActive ? "Active" : "Inactive";
+                document.getElementById("reasoning-text").textContent = s.reasoningActive ? "Active" : "Inactive";
+                document.getElementById("rsi-text").textContent = s.rsiActive ? "Processing" : "Idle";
+
+                document.getElementById("cognitive-load").textContent = s.cognitiveLoad.toFixed(2);
+                document.getElementById("energy-fill").style.width = `${Math.round(s.cognitiveLoad * 100)}%`;
+
+                let statusText = "Balanced";
+                if (s.cognitiveLoad > 0.7) statusText = "High Load";
+                if (s.cognitiveLoad > 0.9) statusText = "Critical";
+                if (s.spiritRest) statusText = "SpiritRest Active";
+                document.getElementById("energy-status").textContent = statusText;
+
+                document.getElementById("current-directive").textContent = s.currentDirective
+                    ? `Directive: ${s.currentDirective.toUpperCase()}`
+                    : "Awaiting Akashic Envelope";
+                document.getElementById("akashic-count").textContent = String(s.akashicRecords);
+                document.getElementById("metrics-line").textContent = `ASPL: ${s.networkMetrics.aspl.toFixed(2)} | CC: ${s.networkMetrics.cc.toFixed(2)} | Modularity: ${s.networkMetrics.modularity.toFixed(2)}`;
+            }
+
+            animate() {
+                this.backgroundRenderer.tick(this.state.networkMetrics);
+                this.particleRenderer.tick();
+                this.updateUI();
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            new ManifestController();
+        });
+    </script>
+</body>
+</html>

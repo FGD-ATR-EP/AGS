@@ -1,0 +1,6 @@
+[
+  {"source": "res-1", "latency_ms": 120.0},
+  {"source": "res-1", "latency_ms": 220.0},
+  {"source": "res-2", "latency_ms": 200.0},
+  {"source": "res-api-1", "latency_ms": 180.0}
+]

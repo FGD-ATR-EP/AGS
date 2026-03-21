@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Light Interaction Testbed</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; color: #fff; font-family: monospace; }
+        canvas { display: block; }
+        #controls {
+            position: absolute; top: 10px; left: 10px;
+            background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid #444;
+            border-radius: 5px;
+            z-index: 100;
+        }
+        input, button, select {
+            background: #222; color: #fff; border: 1px solid #555; padding: 5px; margin: 2px;
+            font-family: monospace;
+        }
+        button:hover { background: #444; cursor: pointer; }
+        #log {
+            position: absolute; bottom: 10px; left: 10px;
+            height: 150px; overflow-y: auto; width: 400px;
+            background: rgba(0,0,0,0.5); pointer-events: none; font-size: 11px;
+            border: 1px solid #333; padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div style="position:fixed;top:12px;left:12px;z-index:9999;padding:8px 12px;border:1px solid #f59e0b;background:rgba(0,0,0,0.82);color:#fbbf24;font:12px monospace;letter-spacing:0.04em;">SANDBOX / NON-CANONICAL MANIFESTATION PATH</div>
+    <div id="controls">
+        <h3 style="margin-top:0">AI ↔ Light Testbed</h3>
+        <label>Mode:
+            <select id="mode">
+                <option value="std">Standard (Rule-based)</option>
+                <option value="ai">AI Adapter (Mock)</option>
+                <option value="logenesis">LOGENESIS (Adaptive)</option>
+            </select>
+        </label><br>
+        <div style="margin-top:5px;">
+            <input type="text" id="voiceInput" placeholder="Simulate Voice Command..." style="width: 200px;">
+            <button id="btnSend">Send</button>
+        </div>
+        <div style="margin-top:10px; font-size: 0.8em; color: #aaa;">
+            • Click canvas to <b>SPAWN</b><br>
+            • Type 'move' to <b>MOVE</b><br>
+            • Type 'erase' to <b>ERASE</b>
+        </div>
+    </div>
+    <div id="log"></div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- WebSocket ---
+        // Defaults to localhost:8000
+        const wsUrl = "ws://" + (window.location.hostname || "localhost") + ":8000/ws";
+        const ws = new WebSocket(wsUrl);
+        const logDiv = document.getElementById('log');
+
+        function log(msg) {
+            const div = document.createElement('div');
+            div.textContent = `> ${msg}`;
+            div.style.borderBottom = "1px solid #222";
+            logDiv.appendChild(div);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        let backendEntities = {};
+        let isNirodha = false;
+
+        ws.onopen = () => log("Connected to LCL Core");
+        ws.onmessage = (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+                if (msg.type === "STATE") {
+                    backendEntities = msg.data.entities;
+                }
+                else if (msg.type === "LOGENESIS_RESPONSE") {
+                    handleLogenesisResponse(msg);
+                }
+                else {
+                    log("RCV: " + JSON.stringify(msg));
+                    executeInstruction(msg);
+                }
+            } catch (e) {
+                log("ERR: " + e.message);
+            }
+        };
+        ws.onclose = () => log("Disconnected from Server");
+
+        function handleLogenesisResponse(msg) {
+            if (msg.text_content) log("LOGENESIS: " + msg.text_content);
+
+            // State Handling
+            if (msg.state === "NIRODHA") {
+                if (!isNirodha) log("STATE: Entering NIRODHA (Silence Protocol)");
+                isNirodha = true;
+                return;
+            } else {
+                if (isNirodha) {
+                    log("STATE: Awakening...");
+                    isNirodha = false;
+                }
+            }
+
+            // Visual Qualia
+            if (msg.visual_qualia) {
+                const q = msg.visual_qualia;
+                // Update existing particles to match the mood
+                particles.forEach(p => {
+                    p.color = q.color;
+                    // Add turbulence/energy
+                    if (q.turbulence > 0.0) {
+                         p.vx += (Math.random()-0.5) * q.turbulence * 2;
+                         p.vy += (Math.random()-0.5) * q.turbulence * 2;
+                    }
+                });
+            }
+
+            // Physics Params - Spawn particles
+            if (msg.physics_params) {
+                const pp = msg.physics_params;
+                if (pp.spawn_rate > 0) {
+                     const color = msg.visual_qualia ? msg.visual_qualia.color : '#ffffff';
+                     // Spawn multiple particles for visibility
+                     for(let i=0; i<pp.spawn_rate * 5; i++) {
+                        const px = width/2 + (Math.random()-0.5)*300;
+                        const py = height/2 + (Math.random()-0.5)*300;
+                        const p = new Particle(px, py, color);
+
+                        // Apply velocity bias
+                        if (pp.velocity_bias) {
+                            p.vx += pp.velocity_bias[0] * 5;
+                            p.vy += pp.velocity_bias[1] * 5;
+                        }
+                        particles.push(p);
+                     }
+                }
+            }
+        }
+        ws.onerror = (e) => log("WebSocket Error");
+
+        // --- Input ---
+        const modeSel = document.getElementById('mode');
+        const voiceIn = document.getElementById('voiceInput');
+        const btnSend = document.getElementById('btnSend');
+
+        function sendVoice() {
+            const text = voiceIn.value;
+            if(!text) return;
+            const payload = {
+                mode: modeSel.value,
+                input: { type: "voice", text: text }
+            };
+            ws.send(JSON.stringify(payload));
+            voiceIn.value = "";
+        }
+
+        btnSend.onclick = sendVoice;
+        voiceIn.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                sendVoice();
+            }
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // Normalize coords [0..1]
+            // We'll define a region box around the click
+            const boxSize = 50;
+            const xMin = Math.max(0, x - boxSize/2) / width;
+            const yMin = Math.max(0, y - boxSize/2) / height;
+            const xMax = Math.min(width, x + boxSize/2) / width;
+            const yMax = Math.min(height, y + boxSize/2) / height;
+
+            const region = [xMin, yMin, xMax, yMax];
+
+            const payload = {
+                mode: modeSel.value,
+                input: {
+                    type: "touch",
+                    region: region,
+                    pressure: 0.8
+                }
+            };
+            ws.send(JSON.stringify(payload));
+            log("SENT: Touch Spawn Request");
+        });
+
+        // --- Renderer ---
+        const particles = [];
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y;
+                this.vx = (Math.random()-0.5)*1.0;
+                this.vy = (Math.random()-0.5)*1.0;
+                this.color = color || 'rgba(255,255,255,0.7)';
+                this.life = 1.0;
+                this.decay = 0.005 + Math.random() * 0.01;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+
+                // Bounce
+                if(this.x < 0 || this.x > width) this.vx *= -1;
+                if(this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 4, 0, Math.PI*2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        function executeInstruction(instr) {
+            // "intent" field in LightInstruction matches LightAction enum
+            const intent = instr.intent;
+
+            if (intent === "SPAWN") {
+                const count = 30;
+                const r = instr.region || [0.4, 0.4, 0.6, 0.6];
+
+                const minX = r[0] * width;
+                const minY = r[1] * height;
+                const w = (r[2] - r[0]) * width;
+                const h = (r[3] - r[1]) * height;
+
+                let color = '#ffffff';
+                if (instr.color_profile === 'natural_green') color = '#00ff88';
+                else if (instr.color_profile === 'bright') color = '#ffff00';
+
+                for(let i=0; i<count; i++) {
+                    const px = minX + Math.random() * w;
+                    const py = minY + Math.random() * h;
+                    particles.push(new Particle(px, py, color));
+                }
+            }
+            else if (intent === "MOVE") {
+                const vec = instr.vector || [0, 0];
+                const strength = instr.strength || 0.8;
+                const force = strength * 5.0;
+
+                particles.forEach(p => {
+                    // Accumulate velocity
+                    p.vx += vec[0] * force;
+                    p.vy += vec[1] * force;
+                });
+            }
+            else if (intent === "ERASE") {
+                 // If region provided, erase inside. Else global clear.
+                 if (instr.region) {
+                     const r = instr.region;
+                     const minX = r[0] * width;
+                     const minY = r[1] * height;
+                     const maxX = r[2] * width;
+                     const maxY = r[3] * height;
+
+                     for(let i = particles.length -1; i>=0; i--) {
+                         const p = particles[i];
+                         if (p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY) {
+                             particles.splice(i, 1);
+                         }
+                     }
+                } else {
+                    particles.length = 0; // Clear all
+                }
+            }
+            else if (intent === "EMPHASIZE") {
+                 particles.forEach(p => {
+                     p.life = 1.5; // extend life
+                     p.color = instr.color_profile === 'bright' ? '#ffcc00' : '#ffffff';
+                 });
+            }
+        }
+
+        function animate() {
+            if (isNirodha) {
+                // Nirodha: Fade to Void Black
+                ctx.fillStyle = 'rgba(5, 5, 5, 0.05)';
+                ctx.fillRect(0, 0, width, height);
+                // Continue loop to finish the fade, but skip particle drawing
+                requestAnimationFrame(animate);
+                return;
+            }
+
+            // Trail effect
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            ctx.fillRect(0,0,width,height);
+
+            // Draw Backend Entities
+            for (const id in backendEntities) {
+                 const ent = backendEntities[id];
+                 const x = ent.position[0] * width;
+                 const y = ent.position[1] * height;
+
+                 ctx.fillStyle = '#00ff88';
+                 ctx.shadowBlur = 10;
+                 ctx.shadowColor = '#00ff88';
+                 ctx.beginPath();
+                 ctx.arc(x, y, 8, 0, Math.PI*2);
+                 ctx.fill();
+                 ctx.shadowBlur = 0;
+            }
+
+            // Draw Local Particles
+            for(let i = particles.length -1; i>=0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+                if(p.life <= 0) particles.splice(i, 1);
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AG-OS | Verification Suite</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ec5b13',
+                        'background-light': '#f8f6f6',
+                        'background-dark': '#1a0f0a',
+                        'cyan-neon': '#00f2ff',
+                        'amber-neon': '#ffab00',
+                        'red-neon': '#ff3d00',
+                        'surface-dark': '#2a1a14',
+                    },
+                    fontFamily: {
+                        display: ['Public Sans', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        DEFAULT: '0.25rem',
+                        lg: '0.5rem',
+                        xl: '0.75rem',
+                        full: '9999px',
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .data-grid {
+            background-image: radial-gradient(circle, #ec5b13 1px, transparent 1px);
+            background-size: 30px 30px;
+            opacity: 0.05;
+        }
+    </style>
+</head>
+<body class="bg-background-light text-slate-900 transition-colors duration-300 dark:bg-background-dark dark:text-slate-100 font-display">
+    <div class="relative flex min-h-screen flex-col overflow-x-hidden">
+        <div class="pointer-events-none fixed inset-0 data-grid"></div>
+
+        <header class="sticky top-0 z-50 flex items-center justify-between border-b border-primary/20 bg-background-dark/80 px-6 py-3 backdrop-blur-md">
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-3 text-primary">
+                    <span class="material-symbols-outlined text-3xl">account_tree</span>
+                    <h1 class="text-lg font-bold uppercase tracking-tight">AG-OS: Verification Suite</h1>
+                </div>
+                <nav class="hidden items-center gap-6 md:flex">
+                    <a class="border-b-2 border-primary pb-1 text-sm font-medium hover:text-primary transition-colors" href="#">Integrity</a>
+                    <a class="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="#">Diagnostics</a>
+                    <a class="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="#">Logs</a>
+                    <a class="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="#">Security</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-3">
+                <a class="rounded-xl border border-primary/20 bg-surface-dark px-3 py-2 text-xs font-bold uppercase tracking-widest text-slate-300 transition-all hover:text-primary" href="/dashboard">Core Dashboard</a>
+                <a class="rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-bold uppercase tracking-widest text-primary transition-all hover:bg-primary/20" href="/vessel_hub.html">Vessel Hub</a>
+            </div>
+        </header>
+
+        <main class="flex flex-1 overflow-hidden">
+            <aside class="hidden w-64 flex-col gap-6 border-r border-primary/10 bg-surface-dark/40 p-4 lg:flex">
+                <div class="flex flex-col gap-1">
+                    <span class="px-3 text-[10px] font-bold uppercase tracking-widest text-primary/60">Primary Systems</span>
+                    <div class="mt-2 space-y-1">
+                        <a class="flex items-center gap-3 rounded-xl px-3 py-2 text-slate-400 transition-all hover:bg-primary/10 hover:text-white" href="/dashboard"><span class="material-symbols-outlined">dashboard</span><span class="text-sm font-medium">Dashboard</span></a>
+                        <a class="flex items-center gap-3 rounded-xl bg-primary px-3 py-2 text-white shadow-lg shadow-primary/20" href="#"><span class="material-symbols-outlined">query_stats</span><span class="text-sm font-medium">Diagnostics</span></a>
+                        <a class="flex items-center gap-3 rounded-xl px-3 py-2 text-slate-400 transition-all hover:bg-primary/10 hover:text-white" href="/vessel_hub.html"><span class="material-symbols-outlined">hub</span><span class="text-sm font-medium">Vessel Hub</span></a>
+                        <a class="flex items-center gap-3 rounded-xl px-3 py-2 text-slate-400 transition-all hover:bg-primary/10 hover:text-white" href="/aether_overseer"><span class="material-symbols-outlined">security</span><span class="text-sm font-medium">Overseer</span></a>
+                    </div>
+                </div>
+                <div class="mt-auto rounded-xl border border-primary/20 bg-primary/5 p-4">
+                    <div class="mb-2 flex items-center justify-between">
+                        <span class="text-[11px] font-bold uppercase text-primary">Kernel Sync</span>
+                        <span class="h-2 w-2 rounded-full bg-cyan-neon shadow-[0_0_8px_#00f2ff]"></span>
+                    </div>
+                    <div class="mb-3 text-xs text-slate-400">Syncing Governance Core...</div>
+                    <div class="h-1.5 w-full rounded-full bg-slate-800">
+                        <div class="h-1.5 w-[88%] rounded-full bg-primary shadow-[0_0_8px_#ec5b13]"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="flex-1 space-y-8 overflow-y-auto p-6 lg:p-10">
+                <section class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    <div class="relative overflow-hidden rounded-xl border border-primary/20 bg-surface-dark/60 p-6 lg:col-span-2">
+                        <div class="absolute right-0 top-0 p-4 opacity-10"><span class="material-symbols-outlined text-[120px]">analytics</span></div>
+                        <div class="mb-6 flex items-center justify-between">
+                            <div>
+                                <h2 class="flex items-center gap-2 text-xl font-bold"><span class="material-symbols-outlined text-primary">grain</span>System Integrity Overview</h2>
+                                <p class="text-sm text-slate-400">Resonance Stability vs Entropy Flux</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-3xl font-black text-cyan-neon drop-shadow-[0_0_10px_#00f2ff]">99.42%</span>
+                                <div class="text-[10px] font-bold uppercase tracking-tighter text-cyan-neon/60">Optimal Harmonic</div>
+                            </div>
+                        </div>
+                        <div class="mt-4 h-48 w-full">
+                            <svg class="h-full w-full" preserveAspectRatio="none" viewBox="0 0 478 150">
+                                <defs>
+                                    <linearGradient id="gradientIntegrity" x1="0%" x2="0%" y1="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#ec5b13" stop-opacity="0.2"></stop>
+                                        <stop offset="100%" stop-color="#ec5b13" stop-opacity="0"></stop>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M0 109C18 109 18 21 36 21C54 21 54 41 72 41C90 41 90 93 108 93C127 93 127 33 145 33C163 33 163 101 181 101C199 101 199 61 217 61C236 61 236 45 254 45C272 45 272 121 290 121C308 121 308 149 326 149C344 149 344 1 363 1C381 1 381 81 399 81C417 81 417 129 435 129C453 129 453 25 472 25" fill="none" stroke="#ec5b13" stroke-width="2"></path>
+                                <path d="M0 109C18 109 18 21 36 21C54 21 54 41 72 41C90 41 90 93 108 93C127 93 127 33 145 33C163 33 163 101 181 101C199 101 199 61 217 61C236 61 236 45 254 45C272 45 272 121 290 121C308 121 308 149 326 149C344 149 344 1 363 1C381 1 381 81 399 81C417 81 417 129 435 129C453 129 453 25 472 25V150H0V109Z" fill="url(#gradientIntegrity)"></path>
+                            </svg>
+                        </div>
+                        <div class="mt-4 flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                            <span>0ms</span><span>15ms</span><span>30ms</span><span>45ms</span><span>60ms</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-between rounded-xl border border-primary/20 bg-surface-dark/60 p-6">
+                        <div>
+                            <h3 class="mb-4 text-sm font-bold uppercase tracking-widest text-primary/60">Entropy Level</h3>
+                            <div class="flex items-end gap-2"><span class="text-5xl font-black text-amber-neon">0.02</span><span class="pb-1 text-xl font-bold text-amber-neon/60">%</span></div>
+                            <p class="mt-2 text-xs text-slate-400">Critical threshold: 0.15%</p>
+                        </div>
+                        <div class="mt-6 border-t border-primary/10 pt-6">
+                            <div class="mb-2 flex items-center justify-between"><span class="text-xs font-medium">Ghost Worker Accuracy</span><span class="text-xs font-bold text-cyan-neon">98.9%</span></div>
+                            <div class="h-1.5 w-full rounded-full bg-slate-800"><div class="h-1.5 w-[98.9%] rounded-full bg-cyan-neon shadow-[0_0_8px_#00f2ff]"></div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    <div class="group rounded-xl border border-primary/10 border-l-4 border-l-cyan-neon bg-surface-dark/60 p-5 transition-all hover:bg-surface-dark"><div class="mb-4 flex items-start justify-between"><span class="material-symbols-outlined text-cyan-neon transition-transform group-hover:scale-110">neurology</span><span class="rounded bg-cyan-neon/10 px-2 py-0.5 text-[10px] font-bold uppercase text-cyan-neon">Mind</span></div><div class="mb-1 text-xl font-bold">Backend Core</div><div class="flex items-center gap-2 text-xs text-slate-400"><span class="flex h-2 w-2 rounded-full bg-cyan-neon"></span>Synchronized (1.2ms)</div></div>
+                    <div class="group rounded-xl border border-primary/10 border-l-4 border-l-primary bg-surface-dark/60 p-5 transition-all hover:bg-surface-dark"><div class="mb-4 flex items-start justify-between"><span class="material-symbols-outlined text-primary transition-transform group-hover:scale-110">layers</span><span class="rounded bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">Body</span></div><div class="mb-1 text-xl font-bold">UI Surface</div><div class="flex items-center gap-2 text-xs text-slate-400"><span class="flex h-2 w-2 rounded-full bg-primary"></span>Responsive (60fps)</div></div>
+                    <div class="group rounded-xl border border-primary/10 border-l-4 border-l-amber-neon bg-surface-dark/60 p-5 transition-all hover:bg-surface-dark"><div class="mb-4 flex items-start justify-between"><span class="material-symbols-outlined text-amber-neon transition-transform group-hover:scale-110">database</span><span class="rounded bg-amber-neon/10 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-neon">Memory</span></div><div class="mb-1 text-xl font-bold">Akashic DB</div><div class="flex items-center gap-2 text-xs text-slate-400"><span class="flex h-2 w-2 rounded-full bg-amber-neon"></span>Index Integrity 100%</div></div>
+                    <div class="group rounded-xl border border-primary/10 border-l-4 border-l-red-neon bg-surface-dark/60 p-5 transition-all hover:bg-surface-dark"><div class="mb-4 flex items-start justify-between"><span class="material-symbols-outlined text-red-neon transition-transform group-hover:scale-110">router</span><span class="rounded bg-red-neon/10 px-2 py-0.5 text-[10px] font-bold uppercase text-red-neon">Bus</span></div><div class="mb-1 text-xl font-bold">AetherBus</div><div class="flex items-center gap-2 text-xs text-slate-400"><span class="flex h-2 w-2 animate-pulse rounded-full bg-red-neon"></span>Heavy Load (84%)</div></div>
+                </section>
+
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                    <div class="flex flex-col overflow-hidden rounded-xl border border-primary/20 bg-black/40 lg:col-span-8">
+                        <div class="flex items-center justify-between border-b border-primary/20 bg-surface-dark px-4 py-3">
+                            <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-primary">code</span><span class="text-sm font-bold uppercase tracking-widest">src/tests/resonance_suite.sh</span></div>
+                            <div class="flex gap-1.5"><div class="h-2 w-2 rounded-full bg-red-neon/50"></div><div class="h-2 w-2 rounded-full bg-amber-neon/50"></div><div class="h-2 w-2 rounded-full bg-cyan-neon/50"></div></div>
+                        </div>
+                        <div class="max-h-80 space-y-2 overflow-y-auto p-4 font-mono text-xs">
+                            <div class="flex gap-4"><span class="text-slate-600">09:12:01</span><span class="text-cyan-neon">[INFO]</span><span class="text-slate-300">Initializing Ghost Worker prediction pool...</span></div>
+                            <div class="flex gap-4"><span class="text-slate-600">09:12:04</span><span class="text-green-400">[PASS]</span><span class="text-slate-300">test_quantum_locking: Integrity verified at 0.002nm resolution</span></div>
+                            <div class="flex gap-4"><span class="text-slate-600">09:12:08</span><span class="text-green-400">[PASS]</span><span class="text-slate-300">test_negative_latency: Jitter within resonance bounds (&lt; 0.05ms)</span></div>
+                            <div class="flex gap-4 border-l-2 border-red-neon bg-red-neon/10 px-2 py-1"><span class="text-slate-600">09:12:12</span><span class="text-red-neon">[FAIL]</span><span class="text-slate-300">test_aether_flow: Harmonic leakage detected at Layer 4 (AetherBus)</span></div>
+                            <div class="flex gap-4"><span class="text-slate-600">09:12:15</span><span class="text-amber-neon">[WARN]</span><span class="text-slate-300">Vessel Driver #14 reports high entropy deviation (0.02%)</span></div>
+                            <div class="flex gap-4"><span class="text-slate-600">09:12:18</span><span class="text-green-400">[PASS]</span><span class="text-slate-300">test_governance_consensus: Core quorum reached in 14ms</span></div>
+                            <div class="flex animate-pulse gap-4"><span class="text-slate-600">09:12:22</span><span class="text-primary">[BUSY]</span><span class="text-slate-300">Running stress_test_mind_linkage...</span></div>
+                        </div>
+                    </div>
+                    <div class="space-y-6 lg:col-span-4">
+                        <div class="rounded-xl border border-primary/20 bg-surface-dark/60 p-5">
+                            <h3 class="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-primary"><span class="material-symbols-outlined text-lg">timer_10_alt_1</span>Latency Calibration</h3>
+                            <div class="space-y-4">
+                                <div><div class="mb-1 flex justify-between text-[10px] text-slate-400"><span>PREDICTION DEPTH</span><span class="text-cyan-neon">42ms</span></div><input class="h-1 w-full cursor-pointer appearance-none rounded-lg bg-slate-800 accent-cyan-neon" type="range" /></div>
+                                <div><div class="mb-1 flex justify-between text-[10px] text-slate-400"><span>GHOST WORKER BIAS</span><span class="text-amber-neon">0.8x</span></div><input class="h-1 w-full cursor-pointer appearance-none rounded-lg bg-slate-800 accent-amber-neon" type="range" /></div>
+                                <button class="w-full rounded-lg border border-primary/30 bg-primary/10 py-2 text-xs font-bold uppercase tracking-tighter text-primary transition-all hover:bg-primary/20">Recalibrate Null Vector</button>
+                            </div>
+                        </div>
+                        <div class="rounded-xl border border-primary/20 bg-surface-dark/60 p-5">
+                            <h3 class="mb-4 flex items-center justify-between text-sm font-bold uppercase tracking-widest text-primary"><span class="flex items-center gap-2"><span class="material-symbols-outlined text-lg">memory</span>Vessel Drivers</span><span class="font-mono text-xs text-slate-500">14/14</span></h3>
+                            <div class="grid grid-cols-7 gap-2">
+                                <div class="aspect-square rounded-sm bg-cyan-neon shadow-[0_0_10px_#00f2ff]"></div><div class="aspect-square rounded-sm bg-cyan-neon shadow-[0_0_10px_#00f2ff]"></div><div class="aspect-square rounded-sm bg-cyan-neon shadow-[0_0_10px_#00f2ff]"></div><div class="aspect-square rounded-sm bg-cyan-neon shadow-[0_0_10px_#00f2ff]"></div><div class="aspect-square rounded-sm bg-cyan-neon shadow-[0_0_10px_#00f2ff]"></div><div class="aspect-square rounded-sm bg-cyan-neon shadow-[0_0_10px_#00f2ff]"></div><div class="aspect-square rounded-sm bg-cyan-neon shadow-[0_0_10px_#00f2ff]"></div><div class="aspect-square rounded-sm bg-cyan-neon shadow-[0_0_10px_#00f2ff]"></div><div class="aspect-square rounded-sm bg-cyan-neon shadow-[0_0_10px_#00f2ff]"></div><div class="aspect-square rounded-sm bg-cyan-neon shadow-[0_0_10px_#00f2ff]"></div><div class="aspect-square rounded-sm bg-cyan-neon shadow-[0_0_10px_#00f2ff]"></div><div class="aspect-square rounded-sm bg-cyan-neon shadow-[0_0_10px_#00f2ff]"></div><div class="aspect-square rounded-sm bg-amber-neon shadow-[0_0_10px_#ffab00]"></div><div class="aspect-square rounded-sm bg-cyan-neon shadow-[0_0_10px_#00f2ff]"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="rounded-xl border border-primary/10 bg-surface-dark/40 p-6">
+                    <div class="flex flex-col justify-between gap-6 md:flex-row md:items-center">
+                        <div class="flex items-center gap-4">
+                            <div class="flex h-16 w-16 items-center justify-center rounded-xl border border-primary/30 bg-primary/10"><span class="material-symbols-outlined text-3xl text-primary">verified_user</span></div>
+                            <div><h3 class="text-lg font-bold">Governance Core Audit</h3><p class="text-sm text-slate-400">Snapshot: V4.2.0-RES-993</p></div>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <div class="flex min-w-[100px] flex-col items-center rounded-lg border border-primary/20 bg-background-dark px-4 py-2"><span class="text-[10px] font-bold uppercase text-slate-500">Quorum</span><span class="text-sm font-bold">Verified</span></div>
+                            <div class="flex min-w-[100px] flex-col items-center rounded-lg border border-primary/20 bg-background-dark px-4 py-2"><span class="text-[10px] font-bold uppercase text-slate-500">Immutability</span><span class="text-sm font-bold text-cyan-neon">Locked</span></div>
+                            <div class="flex min-w-[100px] flex-col items-center rounded-lg border border-primary/20 bg-background-dark px-4 py-2"><span class="text-[10px] font-bold uppercase text-slate-500">Hash Chain</span><span class="text-sm font-bold text-green-400">Valid</span></div>
+                            <button class="rounded-lg bg-primary px-6 py-2 text-sm font-bold uppercase tracking-widest text-white shadow-lg shadow-primary/30 transition-all hover:brightness-110">Run Full Audit</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="flex h-8 items-center justify-between border-t border-primary/10 bg-surface-dark/80 px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+            <div class="flex items-center gap-4"><span class="flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-cyan-neon"></span> AG-OS V4.2.0 Active</span><span class="hidden border-l border-primary/20 pl-4 sm:inline">Mem: 12.4TB / 64.0TB</span><span class="hidden border-l border-primary/20 pl-4 sm:inline">CPU: 14% [Resonance Stable]</span></div>
+            <div class="flex items-center gap-4"><span class="text-primary">Terminal: /dev/aether_0</span><span>09:22:45 UTC</span></div>
+        </footer>
+    </div>
+</body>
+</html>

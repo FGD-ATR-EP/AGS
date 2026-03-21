@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Aetherium Genesis — Actuator UI</title>
+<style>
+  :root{--bg:#000;--accent:#ffb86b;--accent2:#7befff}
+  html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Inter,system-ui,Segoe UI,Roboto}
+
+  #viewport{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  canvas{position:absolute;inset:0;display:block}
+  .ui-layer{position:absolute;left:0;right:0;bottom:24px;display:flex;justify-content:center;pointer-events:none}
+  .actuator{pointer-events:auto;background:linear-gradient(135deg,var(--accent),#ff6b6b);border-radius:999px;padding:14px 22px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 30px rgba(255,120,60,0.12);border:1px solid rgba(255,255,255,0.04);cursor:pointer;user-select:none}
+  .actuator .dot{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.9);box-shadow:0 0 12px rgba(255,200,120,0.9)}
+  .label{font-size:14px;font-weight:600;color:#050505}
+  .sub{font-size:11px;color:rgba(5,5,5,0.6);opacity:0.9}
+  .status{position:absolute;bottom:110px;left:50%;transform:translateX(-50%);font-size:13px;color:rgba(255,255,255,0.6);pointer-events:none}
+  @media (max-width:520px){ .actuator{padding:10px 16px} .label{font-size:13px} .status{bottom:90px} }
+</style>
+</head>
+<body>
+    <div style="position:fixed;top:12px;left:12px;z-index:9999;padding:8px 12px;border:1px solid #f59e0b;background:rgba(0,0,0,0.82);color:#fbbf24;font:12px monospace;letter-spacing:0.04em;">SANDBOX / NON-CANONICAL MANIFESTATION PATH</div>
+<div id="viewport">
+  <canvas id="scene"></canvas>
+  <div class="status" id="status">Idle</div>
+  <div class="ui-layer">
+    <div id="actuator" class="actuator" role="button" aria-pressed="false" aria-label="Start voice interaction">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div class="label">Touch to speak</div>
+        <div class="sub">สัมผัสเพื่อสนทนา</div>
+      </div>
+      <div class="dot" id="act-dot"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Configuration */
+const WS_URL = 'ws://' + (window.location.host || 'localhost:8000') + '/ws';
+const canvas = document.getElementById('scene');
+const ctx = canvas.getContext('2d', { alpha: true });
+let width = canvas.width = window.innerWidth;
+let height = canvas.height = window.innerHeight;
+
+/* State */
+const State = {
+  IDLE: 'idle',
+  RECALL_DRAFT: 'recall_draft',     // Collecting entropy / listening
+  MANIFESTATION: 'manifestation',   // Collapsing to structure
+  STABILIZED: 'stabilized',         // Locked biometric form
+  PROCESSING: 'processing',         // Legacy / Transition
+  RESONATING: 'resonating'          // Legacy / AI Speaking
+};
+let currentState = State.IDLE;
+const statusEl = document.getElementById('status');
+const actuator = document.getElementById('actuator');
+const actDot = document.getElementById('act-dot');
+
+/* Energy Field (Global Physics State) */
+const Energy = {
+    entropy: 0.0,      // 0.0 -> 1.0 (Chaos level)
+    coherence: 0.0,    // 0.0 -> 1.0 (Structure strength)
+    thermalLevel: 0.0  // 0.0 -> 1.0 (Input energy/Load)
+};
+
+/* Manifestation Timer */
+const Manifestation = {
+    t: 0.0,
+    speed: 1.5, // Speed of collapse
+    threshold: 0.65 // Energy required to trigger collapse
+};
+
+function setState(s){
+  currentState = s;
+  statusEl.textContent = s.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  actuator.setAttribute('aria-pressed', s !== State.IDLE);
+
+  // Visual feedback for Actuator Dot based on State
+  if(s === State.IDLE){
+      actDot.style.transform = 'scale(1)';
+      actDot.style.boxShadow = '0 0 12px rgba(255,200,120,0.9)';
+      actDot.style.background = 'rgba(255,255,255,0.9)';
+  }
+  else if(s === State.RECALL_DRAFT){
+      actDot.style.transform = 'scale(1.4)';
+      actDot.style.boxShadow = '0 0 28px rgba(123,239,255,0.6)'; // Blue-ish for potential
+      actDot.style.background = '#7befff';
+  }
+  else if(s === State.MANIFESTATION){
+      actDot.style.transform = 'scale(0.8)'; // Compressing
+      actDot.style.boxShadow = '0 0 40px rgba(255,100,100,0.8)'; // Thermal heat
+      actDot.style.background = '#ff6b6b';
+  }
+  else if(s === State.STABILIZED){
+      actDot.style.transform = 'scale(1.0)';
+      actDot.style.boxShadow = '0 0 15px rgba(255,255,255,0.9)'; // White hot / Stable
+      actDot.style.background = '#ffffff';
+  }
+  else if(s === State.PROCESSING){
+      actDot.style.transform = 'scale(1.1)';
+      actDot.style.boxShadow = '0 0 18px rgba(255,140,80,0.9)';
+  }
+}
+
+/* Particles */
+const PARTICLE_COUNT = 1200; // Increased for density
+const particles = [];
+for(let i=0;i<PARTICLE_COUNT;i++){
+  particles.push({
+    // Current Physics
+    x: Math.random()*width,
+    y: Math.random()*height,
+    vx: (Math.random()-0.5)*0.6,
+    vy: (Math.random()-0.5)*0.6,
+
+    // Manifestation Props
+    startX: 0, startY: 0,
+    targetX: 0, targetY: 0,
+
+    // Appearance
+    size: Math.random()*1.6 + 0.6,
+    hue: Math.random()*360,
+    alpha: 0.5,
+    noiseAmp: 0.0,
+
+    // Semantic Tag
+    tag: 'OTHER', // SKIN, EYE, LIP
+    target: null, // Legacy object ref
+    colorTarget: null
+  });
+}
+let globalPulse = 0;
+let baseHue = 200; // Default Blue
+let targetHue = 200;
+let turbulence = 0.1;
+
+function hexToHue(hex) {
+    // Simple naive conversion for demo
+    if(hex.includes('#')) hex = hex.replace('#','');
+    const r = parseInt(hex.substring(0,2), 16);
+    const g = parseInt(hex.substring(2,4), 16);
+    const b = parseInt(hex.substring(4,6), 16);
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if(max == min){ h = 0; }
+    else {
+        let d = max - min;
+        switch(max){
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return h * 360;
+}
+
+function renderParticles(){
+  ctx.clearRect(0,0,width,height);
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.fillRect(0,0,width,height);
+
+  // Hue LERP (Legacy)
+  baseHue += (targetHue - baseHue) * 0.05;
+  let dt = 0.016; // Approx 60fps
+
+  // --- MANIFESTATION LOGIC ---
+  if(currentState === State.RECALL_DRAFT) {
+      // 1. Monitor Energy for Collapse Trigger
+      Energy.thermalLevel = globalPulse; // Driven by Audio RMS
+      // Trigger Logic: Must have some energy to start collapsing
+      if(Energy.thermalLevel > Manifestation.threshold) {
+          console.log("Manifestation Triggered! Energy:", Energy.thermalLevel);
+          setState(State.MANIFESTATION);
+          Manifestation.t = 0.0;
+      }
+  }
+
+  if(currentState === State.MANIFESTATION) {
+      // 2. Collapse Dynamics
+      Manifestation.t += dt * Manifestation.speed;
+      let t_norm = Math.min(1.0, Manifestation.t);
+
+      // Energy Dynamics
+      Energy.entropy = 0.85 * (1 - t_norm) + 0.05 * t_norm;
+      Energy.coherence = 0.15 * (1 - t_norm) + 1.0 * t_norm;
+
+      if(t_norm >= 1.0) {
+          setState(State.STABILIZED);
+      }
+  }
+
+  for(const p of particles){
+    // A. RECALL DRAFT / MANIFESTATION / STABILIZED PHYSICS
+    if(currentState === State.RECALL_DRAFT || currentState === State.MANIFESTATION || currentState === State.STABILIZED) {
+          let t_norm = (currentState === State.MANIFESTATION) ? Math.min(1.0, Manifestation.t) : (currentState === State.STABILIZED ? 1.0 : 0.0);
+
+          // 1. Position Collapse (Lerp Start -> Target)
+          // We use smoothstep for organic feel
+          let smoothT = t_norm * t_norm * (3 - 2 * t_norm);
+
+          let cx = p.startX + (p.targetX - p.startX) * smoothT;
+          let cy = p.startY + (p.targetY - p.startY) * smoothT;
+
+          // 2. Organic Noise (Dampens as we stabilize)
+          let currentNoise = p.noiseAmp * (1.0 - smoothT);
+          if(currentState === State.STABILIZED) currentNoise = 0;
+
+          let nx = (Math.random()-0.5) * currentNoise;
+          let ny = (Math.random()-0.5) * currentNoise;
+
+          p.x = cx + nx;
+          p.y = cy + ny;
+
+          // 3. Color Thermal Transition
+          let h, s, l;
+
+          if(p.colorTarget) {
+               h = p.colorTarget.h;
+               s = p.colorTarget.s;
+               l = p.colorTarget.l;
+
+               // Draft: Desaturated
+               if(currentState === State.RECALL_DRAFT) s *= 0.2;
+               else s = s * 0.2 + s * 0.8 * t_norm; // Bloom saturation
+          } else {
+               h = baseHue; s = 80; l = 60;
+          }
+
+          // Alpha & Size
+          let a = p.alpha + (1.0 - p.alpha) * t_norm;
+          let size = p.size;
+          if(currentState === State.RECALL_DRAFT) size *= 0.8;
+
+          ctx.fillStyle = `hsla(${h}, ${s}%, ${l}%, ${a})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, size, 0, Math.PI*2);
+          ctx.fill();
+
+    } else {
+        // B. LEGACY PHYSICS (Idle, Resonating, Processing)
+        // Update Logic
+        if((currentState === State.RESONATING || currentState === State.PROCESSING) && p.target){
+          const dx = p.target.x - p.x;
+          const dy = p.target.y - p.y;
+
+          // Attraction to target
+          p.vx += dx * 0.005 * (1 + globalPulse);
+          p.vy += dy * 0.005 * (1 + globalPulse);
+
+          // Turbulence
+          p.vx += (Math.random()-0.5) * turbulence;
+          p.vy += (Math.random()-0.5) * turbulence;
+
+          // Damping
+          p.vx *= 0.92;
+          p.vy *= 0.92;
+        } else {
+          // Idle Drift
+          p.vx += (Math.random()-0.5)*0.08;
+          p.vy += (Math.random()-0.5)*0.08;
+
+          // Center pull
+          p.vx += (width/2 - p.x) * 0.00001;
+          p.vy += (height/2 - p.y) * 0.00001;
+
+          p.vx *= 0.99;
+          p.vy *= 0.99;
+        }
+
+        p.x += p.vx; p.y += p.vy;
+        if(p.x < 0) p.x = width; if(p.x > width) p.x = 0;
+        if(p.y < 0) p.y = height; if(p.y > height) p.y = 0;
+
+        const hue = (baseHue + p.hue * 0.1) % 360; // Base hue dominant
+        const alpha = Math.min(0.95, 0.08 + Math.hypot(p.vx,p.vy)*0.6 + globalPulse*0.25);
+        ctx.fillStyle = `hsla(${hue}, 85%, 60%, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * (1 + globalPulse*0.6), 0, Math.PI*2);
+        ctx.fill();
+    }
+  }
+}
+
+/* Speech Recognition */
+let recognition;
+let finalTranscript = '';
+
+function setupRecognition() {
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'th-TH'; // Default to Thai as per report
+
+        recognition.onstart = function() {
+            console.log("Recognition started");
+        };
+
+        recognition.onresult = function(event) {
+            finalTranscript = event.results[0][0].transcript;
+            console.log("Transcript: ", finalTranscript);
+        };
+
+        recognition.onerror = function(event) {
+             console.error("Recognition error", event.error);
+             stopListening();
+        };
+
+        recognition.onend = function() {
+             console.log("Recognition ended");
+             stopListening();
+        };
+    } else {
+        console.warn("Web Speech API not supported");
+    }
+}
+setupRecognition();
+
+/* Audio capture & simple VAD */
+let audioCtx, analyser, dataArray, sourceNode, mediaStream;
+let listeningStart = 0;
+let vadTimer = null;
+
+async function startListening(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') await audioCtx.resume();
+
+  // Start STT
+  if(recognition) {
+      finalTranscript = '';
+      try { recognition.start(); } catch(e){}
+  }
+
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch(err){
+    console.error('Microphone access denied', err);
+    return;
+  }
+  sourceNode = audioCtx.createMediaStreamSource(mediaStream);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  sourceNode.connect(analyser);
+  dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+  // Start Recall Flow instead of just Listening
+  enterRecallDraft();
+
+  listeningStart = performance.now();
+  vadLoop();
+  sendWS({ type:'INTENT_START', meta:{ ts: Date.now() } });
+}
+
+function stopListening(){
+  if(mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+  if(sourceNode){ sourceNode.disconnect(); sourceNode = null; }
+  if(analyser){ analyser.disconnect(); analyser = null; }
+  if(recognition) { try { recognition.stop(); } catch(e){} }
+
+  // If we stabilized, don't go to processing, stay stabilized.
+  // If we are still in draft, go to processing (or cancel).
+  if(currentState !== State.STABILIZED && currentState !== State.MANIFESTATION) {
+      setState(State.PROCESSING);
+  }
+
+  // Send recognized text if available
+  if(finalTranscript && finalTranscript.length > 0) {
+      sendWS({ type:'INTENT_RECOGNIZED', text: finalTranscript });
+  } else {
+      // Fallback or just signal end
+      sendWS({ type:'INTENT_END', meta:{ duration: performance.now() - listeningStart } });
+  }
+}
+
+/* energy-based VAD (Visual Only) */
+function vadLoop(){
+  if(!analyser) return;
+  analyser.getByteTimeDomainData(dataArray);
+  let sum = 0;
+  for(let i=0;i<dataArray.length;i++){
+    const v = (dataArray[i] - 128) / 128;
+    sum += v*v;
+  }
+  const rms = Math.sqrt(sum / dataArray.length);
+  globalPulse = Math.min(1, rms * 6);
+  requestAnimationFrame(vadLoop);
+}
+
+/* WebSocket AetherBus */
+let ws;
+function connectWS(){
+  ws = new WebSocket(WS_URL);
+  ws.addEventListener('open', ()=> console.log('AetherBus connected'));
+  ws.addEventListener('message', (ev)=> {
+    try {
+      const msg = JSON.parse(ev.data);
+      handleAetherMessage(msg);
+    } catch(e){ console.error('Invalid WS message', e); }
+  });
+  ws.addEventListener('close', ()=> setTimeout(connectWS, 2000));
+}
+connectWS();
+
+function sendWS(payload){
+  if(ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(payload));
+}
+
+/* Handle server messages */
+function handleAetherMessage(msg){
+  if(msg.type === 'VISUAL_PARAMS'){
+    applyVisualParams(msg.params || {});
+  } else if(msg.type === 'AI_SPEAK'){
+    triggerAIResponse(msg.text || '');
+  } else if(msg.type === 'MANIFEST'){
+    setParticleTargetsFromCoords(msg.coords || []);
+    setState(State.RESONATING);
+  } else if(msg.type === 'LOGENESIS_RESPONSE' || msg.type === 'LightInstruction'){
+    const params = legacyToVisual(msg);
+    applyVisualParams(params);
+  }
+}
+
+function legacyToVisual(msg){
+  return {
+    base_shape: "cloud", // Default
+    color_palette: "#FFFFFF",
+    turbulence: 0.1
+  };
+}
+
+function applyVisualParams(params){
+  console.log("Applying Visuals:", params);
+
+  // 1. Color
+  if(params.color_palette) targetHue = hexToHue(params.color_palette);
+
+  // 2. Turbulence
+  turbulence = params.turbulence || 0.1;
+
+  // 3. Shape Generation (Morphing)
+  const shape = params.base_shape || 'cloud';
+
+  let targets;
+  // If we are in Manifestation mode, use Biometric Proxy
+  if(currentState === State.MANIFESTATION || currentState === State.RECALL_DRAFT || currentState === State.STABILIZED) {
+     targets = generateBiometricProxy(particles.length);
+  } else {
+     targets = generateShapeTargets(shape, particles.length);
+  }
+
+  setParticleTargetsFromCoords(targets);
+  // Only set Resonating if not in new states (Legacy path)
+  if(currentState === State.IDLE || currentState === State.PROCESSING) {
+    setState(State.RESONATING);
+  }
+}
+
+/* Biometric Proxy Generator (Procedural Face) */
+function generateBiometricProxy(count) {
+    const targets = [];
+    const cx = width / 2;
+    const cy = height / 2;
+    const faceScale = Math.min(width, height) * 0.35;
+
+    // Distribution Ratios
+    const eyeCount = Math.floor(count * 0.15); // 15% Eyes
+    const lipCount = Math.floor(count * 0.10); // 10% Lips
+    const skinCount = count - (eyeCount * 2) - lipCount;
+
+    // 1. Eyes (Symmetric Vortices)
+    const eyeSpacing = faceScale * 0.4;
+    const eyeY = cy - faceScale * 0.15;
+    const eyeRadius = faceScale * 0.12;
+
+    for(let i=0; i<eyeCount * 2; i++) {
+        const isRight = i >= eyeCount;
+        const centerX = isRight ? cx + eyeSpacing : cx - eyeSpacing;
+
+        // Vortex Math
+        const angle = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random()) * eyeRadius;
+
+        targets.push({
+            x: centerX + Math.cos(angle) * r,
+            y: eyeY + Math.sin(angle) * r * 0.8, // Slightly flattened
+            tag: 'EYE'
+        });
+    }
+
+    // 2. Lips (Horizontal Wave)
+    const mouthY = cy + faceScale * 0.35;
+    const mouthWidth = faceScale * 0.5;
+
+    for(let i=0; i<lipCount; i++) {
+        const t = i / lipCount; // 0 to 1
+        const x = cx - (mouthWidth/2) + (t * mouthWidth);
+
+        // Simple Sine Wave approximation for lips
+        const wave = Math.sin(t * Math.PI) * (faceScale * 0.05);
+        const y = mouthY + (Math.random() - 0.5) * (faceScale * 0.08) + (i%2==0 ? wave : -wave * 0.5);
+
+        targets.push({
+            x: x,
+            y: y,
+            tag: 'LIP'
+        });
+    }
+
+    // 3. Skin/Shell (Elliptical Cloud)
+    for(let i=0; i<skinCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        // Bias towards edges for shell, center for volume
+        const rRaw = Math.random();
+        const r = (0.4 + Math.pow(rRaw, 0.5) * 0.6) * faceScale;
+
+        const x = cx + Math.cos(angle) * r * 0.85; // Cheeks narrower
+        const y = cy + Math.sin(angle) * r * 1.1;  // Long face
+
+        targets.push({
+            x: x,
+            y: y,
+            tag: 'SKIN'
+        });
+    }
+
+    return targets;
+}
+
+function generateShapeTargets(shape, count) {
+    const targets = [];
+    const cx = width / 2;
+    const cy = height / 2;
+    const minDim = Math.min(width, height);
+
+    for(let i=0; i<count; i++) {
+        let x, y;
+        if(shape === 'sphere' || shape === 'circle' || shape === 'orb') {
+            const angle = Math.random() * Math.PI * 2;
+            const r = Math.sqrt(Math.random()) * (minDim * 0.25); // Uniform disk
+            x = cx + Math.cos(angle) * r;
+            y = cy + Math.sin(angle) * r;
+        }
+        else if (shape === 'vortex' || shape === 'spiral') {
+            const angle = i * 0.1;
+            const r = (i / count) * (minDim * 0.35);
+            x = cx + Math.cos(angle) * r;
+            y = cy + Math.sin(angle) * r;
+        }
+        else if (shape === 'cube' || shape === 'box') {
+            const size = minDim * 0.4;
+            x = cx + (Math.random() - 0.5) * size;
+            y = cy + (Math.random() - 0.5) * size;
+        }
+        else if (shape === 'line') {
+             x = (i / count) * (width * 0.8) + (width * 0.1);
+             y = cy + (Math.random()-0.5) * 50;
+        }
+        else if (shape === 'scatter') {
+             x = Math.random() * width;
+             y = Math.random() * height;
+        }
+        else { // Cloud / Nebula
+             const angle = Math.random() * Math.PI * 2;
+             const r = Math.random() * (minDim * 0.4);
+             // Perlin-ish noise distribution (fake)
+             x = cx + Math.cos(angle) * r;
+             y = cy + Math.sin(angle) * r * 0.6; // Flattened
+        }
+        targets.push({x, y, tag: 'OTHER'});
+    }
+    return targets;
+}
+
+function setParticleTargetsFromCoords(coords){
+  for(let i=0;i<particles.length;i++){
+    const c = coords[i % coords.length];
+    // Legacy support
+    particles[i].target = { x: c.x, y: c.y };
+
+    // New Physics support
+    particles[i].targetX = c.x;
+    particles[i].targetY = c.y;
+    particles[i].tag = c.tag || 'OTHER';
+
+    // Set Target Colors based on Tag (Biometric Palettes)
+    if(particles[i].tag === 'EYE') particles[i].colorTarget = {h: 200, s: 90, l: 80}; // Cyan/White
+    else if(particles[i].tag === 'LIP') particles[i].colorTarget = {h: 340, s: 70, l: 65}; // Soft Pink
+    else if(particles[i].tag === 'SKIN') particles[i].colorTarget = {h: 25, s: 60, l: 60}; // Warm Amber
+    else particles[i].colorTarget = {h: 0, s: 0, l: 100}; // White
+  }
+}
+
+function enterRecallDraft(){
+    setState(State.RECALL_DRAFT);
+
+    // Reset Energy Field
+    Energy.entropy = 0.85;
+    Energy.coherence = 0.15;
+    Energy.thermalLevel = 0.1;
+
+    Manifestation.t = 0.0;
+
+    // Generate Biometric Targets (The "Draft")
+    const targets = generateBiometricProxy(particles.length);
+    setParticleTargetsFromCoords(targets);
+
+    // Initialize Particles for Draft State
+    for(const p of particles){
+        p.startX = p.x;
+        p.startY = p.y;
+        p.alpha = 0.2; // Ghostly
+        p.noiseAmp = 15.0; // High noise
+        p.color_current = { ...p.colorTarget, s: 0 }; // Desaturated start
+    }
+}
+
+function triggerAIResponse(text){
+  if('speechSynthesis' in window){
+    const utter = new SpeechSynthesisUtterance(text);
+    // Try multiple languages
+    utter.lang = 'th-TH';
+    utter.onstart = ()=> { setState(State.RESONATING); globalPulse = 0.9; };
+    utter.onend = ()=> { globalPulse = 0; setTimeout(()=> setState(State.IDLE), 2000); };
+    speechSynthesis.speak(utter);
+  } else {
+    setState(State.RESONATING);
+    setTimeout(()=> setState(State.IDLE), 2000);
+  }
+}
+
+/* Actuator interactions */
+actuator.addEventListener('pointerdown', async (e) => {
+  e.preventDefault();
+  if(currentState === State.IDLE){
+    await startListening();
+  } else if(currentState === State.RECALL_DRAFT){
+    stopListening(); // Manual stop
+  } else if(currentState === State.STABILIZED || currentState === State.MANIFESTATION){
+    // Reset from Manifestation
+    setState(State.IDLE);
+    sendWS({ type:'RESET' });
+  } else if(currentState === State.RESONATING){
+    setState(State.IDLE);
+    sendWS({ type:'RESET' });
+  } else if(currentState === State.LISTENING){
+    stopListening();
+  }
+});
+
+/* Resize & loop */
+window.addEventListener('resize', ()=> { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; });
+function loop(){
+  globalPulse = Math.max(0, globalPulse * 0.96 - 0.002);
+  colorShift = (colorShift + 0.05) % 360;
+  renderParticles();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>

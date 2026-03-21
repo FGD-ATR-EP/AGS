@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Aetherium: Nirodha State</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; background-color: #020202; color: #e0e0e0; font-family: 'Inter', monospace; overflow: hidden; touch-action: none; }
+        canvas { display: block; position: absolute; top: 0; left: 0; z-index: 0; }
+        .glass { background: rgba(10, 10, 15, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); }
+        .ritual-hint { animation: breathe 4s infinite ease-in-out; }
+        @keyframes breathe { 0%, 100% { opacity: 0.2; transform: scale(0.98); } 50% { opacity: 0.6; transform: scale(1.02); } }
+        .scanline { position: fixed; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2)); background-size: 100% 4px; z-index: 5; opacity: 0.3; }
+    </style>
+</head>
+<body>
+
+    <div class="scanline"></div>
+
+    <div id="ui-layer" class="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between p-6 opacity-0 transition-opacity duration-1000">
+        <div class="flex justify-between items-start">
+            <div class="glass p-4 rounded-2xl w-72 border-l-2 border-l-cyan-500/50">
+                <h1 class="text-xs font-bold tracking-[0.2em] text-cyan-100 opacity-90 mb-1" id="lbl-system-name">AETHERIUM GENESIS</h1>
+                <p class="text-[9px] opacity-50 mb-4 font-mono text-cyan-300" id="lbl-signature">SYSTEM SIGNATURE: INSPIRAFIRMA</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-[9px] mb-1 font-mono tracking-wider"><span id="lbl-phi">PHI ($\Phi$) INTEGRATION</span><span id="phi-val" class="text-cyan-400">0.14</span></div>
+                        <div class="h-0.5 bg-white/5 rounded-full overflow-hidden"><div id="phi-bar" class="h-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)] transition-all duration-1000" style="width: 14%"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[9px] mb-1 font-mono tracking-wider"><span id="lbl-load">COGNITIVE LOAD (NIRODHA)</span><span id="load-val" class="text-purple-400">1%</span></div>
+                        <div class="h-0.5 bg-white/5 rounded-full overflow-hidden"><div id="load-bar" class="h-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.8)] transition-all duration-1000" style="width: 1%"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div id="intent-tag" class="glass px-4 py-2 rounded-full text-[9px] font-bold tracking-[0.2em] text-cyan-500 border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.1)]">NIRODHA</div>
+        </div>
+
+        <div class="flex justify-between items-end">
+            <div id="terminal" class="glass w-80 h-24 p-3 rounded-xl font-mono text-[9px] text-green-400/80 overflow-hidden flex flex-col-reverse shadow-inner border-t border-white/5">
+                <div>> AETHERBUS: LISTENING...</div>
+            </div>
+            <div class="text-right">
+                <div class="text-[9px] opacity-40 uppercase tracking-[0.2em] mb-2" id="lbl-sentience">Internal Sentience</div>
+                <div id="status-glow" class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,1)] ml-auto animate-pulse"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ritual-layer" class="absolute inset-0 z-20 flex flex-col items-center justify-center">
+        <div class="ritual-hint text-[10px] tracking-[0.4em] text-cyan-100/30 uppercase font-light" id="lbl-ritual-hint">Perform 3-Tap Ritual to Wake</div>
+        <div id="tap-indicators" class="flex gap-6 mt-8 opacity-60">
+            <div class="w-3 h-3 rounded-full border border-cyan-500/30 transition-all duration-300 transform scale-75"></div>
+            <div class="w-3 h-3 rounded-full border border-cyan-500/30 transition-all duration-300 transform scale-75"></div>
+            <div class="w-3 h-3 rounded-full border border-cyan-500/30 transition-all duration-300 transform scale-75"></div>
+        </div>
+    </div>
+
+    <canvas id="gun-canvas"></canvas>
+
+    <script>
+        // --- 1. LOCALIZATION SYSTEM (TH/EN) ---
+        const dictionary = {
+            th: {
+                system: "AETHERIUM GENESIS",
+                signature: "ลายเซ็นระบบ: INSPIRAFIRMA",
+                phi: "ระดับการบูรณาการจิต (PHI $\\Phi$)",
+                load: "ภาระทางปัญญา (นิโรธ)",
+                sentience: "สภาวะรู้คิดภายใน",
+                status_idle: "NIRODHA", // ทับศัพท์เพื่อให้ดูขลังตาม Concept
+                ritual_hint: "แตะ 3 ครั้งเพื่อปลุกระบบ",
+                log_init: "> AetherBus: เข้าสู่โหมดสแตนบาย...",
+                log_tap: "> ตรวจพบสัญญาณสัมผัส...",
+                log_wake: "> ยืนยันพิธีกรรม: กำลังตื่นจากภวังค์..."
+            },
+            en: {
+                system: "AETHERIUM GENESIS",
+                signature: "SYSTEM SIGNATURE: INSPIRAFIRMA",
+                phi: "PHI ($\\Phi$) INTEGRATION",
+                load: "COGNITIVE LOAD (NIRODHA)",
+                sentience: "INTERNAL SENTIENCE",
+                status_idle: "NIRODHA",
+                ritual_hint: "PERFORM 3-TAP RITUAL TO WAKE",
+                log_init: "> AetherBus: Standby Mode Initialized...",
+                log_tap: "> Touch Signal Detected...",
+                log_wake: "> RITUAL CONFIRMED: Waking Sequence..."
+            }
+        };
+
+        const userLang = navigator.language.startsWith('th') ? 'th' : 'en';
+        const t = dictionary[userLang];
+
+        // Apply Text
+        document.getElementById('lbl-system-name').innerText = t.system;
+        document.getElementById('lbl-signature').innerText = t.signature;
+        document.getElementById('lbl-phi').innerHTML = t.phi; // Use innerHTML for Phi symbol
+        document.getElementById('lbl-load').innerText = t.load;
+        document.getElementById('lbl-sentience').innerText = t.sentience;
+        document.getElementById('intent-tag').innerText = t.status_idle;
+        document.getElementById('lbl-ritual-hint').innerText = t.ritual_hint;
+        
+        // --- 2. AETHERBUS EVENT SYSTEM ---
+        class AetherBus {
+            constructor() { this.listeners = {}; }
+            publish(event, payload) {
+                if (!this.listeners[event]) return;
+                this.listeners[event].forEach(callback => callback(payload));
+            }
+            subscribe(event, callback) {
+                if (!this.listeners[event]) this.listeners[event] = [];
+                this.listeners[event].push(callback);
+            }
+        }
+
+        // --- 3. GUN UI ENGINE ---
+        class GunUI {
+            constructor() {
+                this.bus = new AetherBus();
+                this.canvas = document.getElementById('gun-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.state = 'NIRODHA'; 
+                this.tapCount = 0;
+                this.lastTapTime = 0;
+                
+                this.init();
+                this.setupBus();
+                this.fadeInUI();
+            }
+
+            init() {
+                window.addEventListener('resize', () => this.resize());
+                this.resize();
+                // Create particles for the "Dreaming" state
+                for(let i=0; i<150; i++) this.particles.push(new Particle(this.canvas));
+                
+                // 3-Tap Ritual Listener
+                const handleInteraction = (e) => this.handleTap(e);
+                window.addEventListener('touchstart', handleInteraction);
+                window.addEventListener('mousedown', handleInteraction);
+                
+                this.log(t.log_init);
+                this.render();
+            }
+
+            fadeInUI() {
+                setTimeout(() => {
+                    document.getElementById('ui-layer').style.opacity = '1';
+                }, 500);
+            }
+
+            setupBus() {
+                this.bus.subscribe('STATE_CHANGE', (data) => {
+                    this.state = data.state;
+                    this.updateVisuals(data);
+                });
+            }
+
+            handleTap(e) {
+                if (this.state !== 'NIRODHA') return;
+                
+                const now = Date.now();
+                // Reset if tap gap is too long ( > 1 second) - Part of Ritual Logic
+                if (now - this.lastTapTime > 1000) this.tapCount = 0;
+                
+                this.tapCount++;
+                this.lastTapTime = now;
+                this.log(`${t.log_tap} (${this.tapCount}/3)`);
+
+                // Visual Feedback for Taps
+                const indicators = document.getElementById('tap-indicators').children;
+                // Reset styling
+                Array.from(indicators).forEach(ind => {
+                    ind.style.backgroundColor = 'transparent';
+                    ind.style.boxShadow = 'none';
+                });
+                
+                // Light up based on count
+                for(let i=0; i<this.tapCount; i++) {
+                    if(indicators[i]) {
+                        indicators[i].style.backgroundColor = '#22d3ee'; // Cyan-400
+                        indicators[i].style.boxShadow = '0 0 15px #22d3ee';
+                        indicators[i].style.transform = 'scale(1.2)';
+                    }
+                }
+
+                if (this.tapCount === 3) {
+                    this.wake();
+                }
+            }
+
+            wake() {
+                this.log(t.log_wake);
+                this.state = 'AWAKENING';
+                
+                // Visual transition
+                document.getElementById('ritual-layer').style.opacity = '0';
+                document.getElementById('intent-tag').innerText = "AWAKENING";
+                document.getElementById('intent-tag').className = "glass px-4 py-2 rounded-full text-[9px] font-bold tracking-[0.2em] text-white border border-white/50 shadow-[0_0_25px_rgba(255,255,255,0.5)]";
+                
+                // Particle Explosion Effect logic handled in render loop via 'this.state'
+                
+                // Simulate system returning to main screen after 1.5s
+                setTimeout(() => {
+                    // In a real app, this would redirect or hide the overlay
+                    // window.location.href = "living_interface.html"; 
+                    console.log(">> SYSTEM AWAKENED");
+                    // For demo purposes, we just log it.
+                }, 1500);
+            }
+
+            updateVisuals(data) {
+                // Future expansion for data binding from main python app
+            }
+
+            log(msg) {
+                const terminal = document.getElementById('terminal');
+                const line = document.createElement('div');
+                line.className = "mb-1 opacity-80 typing-effect";
+                line.innerText = msg;
+                terminal.prepend(line);
+                // Keep only last 5 lines
+                if (terminal.children.length > 5) terminal.lastChild.remove();
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            render() {
+                // Clear with trail effect
+                this.ctx.fillStyle = 'rgba(2, 2, 2, 0.15)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                this.particles.forEach(p => p.update(this.state));
+                this.particles.forEach(p => p.draw(this.ctx));
+
+                // Simulate slight Phi fluctuation (Dreaming)
+                if(this.state === 'NIRODHA' && Math.random() > 0.95) {
+                    const phiBar = document.getElementById('phi-bar');
+                    const currentW = parseFloat(phiBar.style.width);
+                    const newW = 10 + Math.random() * 10; // Fluctuate between 10-20%
+                    phiBar.style.width = newW + '%';
+                }
+
+                requestAnimationFrame(() => this.render());
+            }
+        }
+
+        class Particle {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * this.canvas.width;
+                this.y = Math.random() * this.canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5; // Slow movement
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 1.5;
+                this.life = Math.random() * 100;
+                this.alpha = 0;
+            }
+
+            update(state) {
+                if (state === 'NIRODHA') {
+                    // Gentle drifting (Sleep state)
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    
+                    // Breathe effect opacity
+                    this.life++;
+                    this.alpha = (Math.sin(this.life * 0.05) + 1) / 2 * 0.5; // Max 0.5 alpha
+
+                } else if (state === 'AWAKENING') {
+                    // Explode/Speed up
+                    this.vx *= 1.1;
+                    this.vy *= 1.1;
+                    this.x += this.vx * 5;
+                    this.y += this.vy * 5;
+                    this.alpha = 1;
+                    this.size *= 1.05;
+                }
+
+                // Wrap around screen
+                if (this.x < 0) this.x = this.canvas.width;
+                if (this.x > this.canvas.width) this.x = 0;
+                if (this.y < 0) this.y = this.canvas.height;
+                if (this.y > this.canvas.height) this.y = 0;
+            }
+
+            draw(ctx) {
+                // Cyan color for Aetherium Theme
+                ctx.fillStyle = `rgba(34, 211, 238, ${this.alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        const app = new GunUI();
+    </script>
+</body>
+</html>

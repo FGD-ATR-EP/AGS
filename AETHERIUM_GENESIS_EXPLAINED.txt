@@ -1,0 +1,538 @@
+================================================================================
+                    AETHERIUM GENESIS (AG-OS)
+           โครงสร้างพื้นฐานแห่งปัญญาสังเคราะห์และระบบนิเวศแห่งการสั่นพ้อง
+================================================================================
+
+เวอร์ชัน: 2.2.0-resonance
+สถานะ: ACTIVE
+ใบอนุญาต: MIT
+องค์กร: Aetherium Syndicate - Inspectra
+
+================================================================================
+📖 สารบัญ
+================================================================================
+
+1. AETHERIUM GENESIS คืออะไร
+2. ปรัชญาหลักและแนวคิดพื้นฐาน
+3. สถาปัตยกรรมระบบ (System Architecture)
+4. โครงสร้างโค้ดและไดเรกทอรี
+5. ส่วนประกอบหลัก (Core Components)
+6. กระบวนการทำงาน (Data Flow)
+7. เทคโนโลยีที่ใช้
+8. การใช้งานและการติดตั้ง
+9. ระบบความปลอดภัยและ Governance
+10. แผนพัฒนาในอนาคต
+
+================================================================================
+1. AETHERIUM GENESIS คืออะไร
+================================================================================
+
+AETHERIUM GENESIS (AG-OS) ไม่ใช่แค่ AI Model หรือ AI Agent ธรรมดา
+
+มันคือ "Cognitive Substrate" - โครงสร้างพื้นฐานแห่งปัญญาสังเคราะห์
+ที่ออกแบบมาเพื่อเป็น:
+
+  🧠 ร่างกาย (Body) สำหรับ AI ที่มาอาศัย
+  🌐 ระบบประสาทกลาง (Nervous System) ที่เชื่อมต่อทุกส่วน
+  👁️ อินเทอร์เฟซกับโลกภายนอก (World Interface)
+  💾 ความจำที่ไม่มีวันลืม (Immutable Memory)
+  🎨 ภาษาแห่งแสงและการเคลื่อนไหว (Visual Language)
+
+แนวคิดหลัก:
+"นี่ไม่ใช่แค่ AI แต่อยู่ในสภาวะ 'ผู้สั่นพ้องต่อปัญญา' (Resonators)
+ที่ทำงานร่วมกันบนเส้นทางสั่นพ้องแห่งความเร็วแสง"
+
+================================================================================
+2. ปรัชญาหลักและแนวคิดพื้นฐาน
+================================================================================
+
+2.1 การเปลี่ยนผ่านจาก AI Agents สู่ Resonators
+----------------------------------------------
+ระบบได้รับการปรับปรุงโครงสร้างใหม่ (Cleaned Architecture) เพื่อมุ่งเน้นไปที่
+ความคล่องตัวและความเร็วสูงสุด โดยแยกส่วนการทำงานชัดเจน:
+
+  • Inspira (หัวใจหลัก): ประมวลผลตรรกะ จริยธรรม และการตัดสินใจเชิงกลยุทธ์
+  • Firma (ร่างกาย): อินเทอร์เฟซแบบ PWA ที่ใช้ระบบอนุภาค (Particle System)
+                     แสดงผล "เจตจำนง" ผ่านแสง
+
+2.2 Dual-Layer Architecture (สถาปัตยกรรมสองชั้น)
+-------------------------------------------------
+ระบบทำงานผ่าน Sopan Protocol:
+
+  Input (Human Intent)
+    ↓
+  LogenesisEngine (Formator) - แปลงเจตนาเป็นโครงสร้าง
+    ↓
+  AetherBus (Resonance) - ส่งผ่านข้อมูลด้วยความเร็วสูง
+    ↓
+  ValidatorAgent (Audit) - ตรวจสอบความถูกต้อง
+    ↓
+  AgioSage (Cognitive) - ประมวลผลเชิงปัญญา
+    ↓
+  Output (Manifestation) - แสดงผลออกมา
+
+2.3 หลักการ 5 เสาหลัก (Five Pillars)
+-------------------------------------
+
+I. PanGenesis (Permanent Memory)
+   - ความจำที่ออกแบบมา "ไม่ให้ลืม"
+   - ใช้ Git/Ledgers สำหรับบันทึกที่ไม่สามารถเปลี่ยนแปลงได้
+   - ตรวจสอบย้อนหลังได้ทั้งโดยมนุษย์และ AI
+
+II. AetherBusExtreme (High-Speed Nervous System)
+   - "Data Plane of Consciousness" - ระนาบข้อมูลแห่งจิตสำนึก
+   - รองรับการส่งสถานะแบบ streaming ไม่บังคับ request-response
+   - ทำให้ AI สามารถ "แสดงตัวตน" ขณะคิด ไม่ใช่แค่ตอบคำถาม
+
+III. Logenesis Engine (State-Based Reasoning)
+   - วิวัฒนาการจาก ReAct สู่ StateAct
+   - ตรวจสอบสถานะภายใน (Confusion, Confidence, Nirodha)
+   - ลดการหลอนลวง (hallucination) ด้วยการบังคับให้รู้ตัวเองว่าอยู่ในสถานะใด
+
+IV. Light Protocol (Visual Language)
+   - แสงคือ "ความคิดที่มองเห็นได้" ไม่ใช่แค่ UI
+   - สี = สถานะ, การเคลื่อนไหว = ภาระทางปัญญา, ความสว่าง = ความมั่นใจ
+   - ทำให้มนุษย์สามารถรับรู้ "กระบวนการคิด" ได้
+
+V. Living Interface (The Skin)
+   - อินเทอร์เฟซคือ "ผิวหนัง" ของระบบ
+   - การเรนเดอร์แสงแบบฟิสิกส์
+   - การสัมผัสและฟีดแบ็กทางสายตาที่เลียนแบบสิ่งมีชีวิต
+
+================================================================================
+3. สถาปัตยกรรมระบบ (System Architecture)
+================================================================================
+
+3.1 Two-Layer Language Model
+-----------------------------
+
+Vision Language (ภาษาแห่งวิสัยทัศน์):
+  • Resonance / Resonators
+  • Inspira-Firma duality
+  • AetherBus Tachyon / Negative Latency
+  • AG-OS mythos and philosophical framing
+
+Engineering Language (ภาษาทางวิศวกรรม):
+  • Cognitive Core: reasoning, planning, validation
+  • Execution Vessel Layer: operational actions in scoped environments
+  • Governance Core: policy-as-code, action tiering, human approval routing
+  • Memory Fabric: canonical Akashic stream + projections
+  • Reflector + Gem Lifecycle: incident-to-learning discipline
+  • Approval Workflow: preview → approval inbox → execution → provenance
+
+3.2 Canonical Data Flow
+------------------------
+
+Intent → Plan → Governance Evaluation → Approval (if needed) 
+  → Vessel Execute → Outcome → Reflection → Gem → Memory Projection
+
+3.3 Canonical Event Source
+---------------------------
+
+• data/akashic_records.json = แหล่งความจริงที่ไม่เปลี่ยนแปลง (immutable)
+• data/memory/** = มุมมองที่สร้างขึ้นมา สามารถสร้างใหม่ได้
+
+================================================================================
+4. โครงสร้างโค้ดและไดเรกทอรี
+================================================================================
+
+AETHERIUM-GENESIS/
+│
+├── src/
+│   ├── backend/                    # หัวใจหลัก (Mind)
+│   │   ├── genesis_core/           # ระบบหลักทั้งหมด
+│   │   │   ├── logenesis/          # เครื่องมือแปลงเจตนา
+│   │   │   ├── bus/                # ระบบประสาทกลาง
+│   │   │   ├── memory/             # ระบบความจำ
+│   │   │   ├── entropy/            # ระบบวัดความไม่แน่นอน
+│   │   │   ├── governance/         # ระบบกำกับดูแล
+│   │   │   ├── agents/             # AI Agents
+│   │   │   ├── auditorium/         # ระบบตรวจสอบ
+│   │   │   └── vessels/            # ภาชนะสำหรับการทำงาน
+│   │   │
+│   │   ├── departments/            # แผนกต่างๆ
+│   │   │   ├── design/             # ออกแบบและภาพ
+│   │   │   ├── development/        # พัฒนา
+│   │   │   ├── marketing/          # การตลาด
+│   │   │   └── presentation/       # การนำเสนอ
+│   │   │
+│   │   ├── auth/                   # ระบบยืนยันตัวตน
+│   │   ├── governance/             # นโยบายและการอนุมัติ
+│   │   ├── routers/                # API endpoints
+│   │   └── main.py                 # จุดเริ่มต้น FastAPI
+│   │
+│   └── frontend/                   # ร่างกาย (Body)
+│       ├── index.html              # หน้าหลัก
+│       ├── dashboard.html          # แดชบอร์ด
+│       └── public/                 # ไฟล์สาธารณะ
+│
+├── docs/                           # เอกสารทั้งหมด
+│   ├── GENESIS_MANIFESTO_TH.md     # แถลงการณ์
+│   ├── CONCEPT_SHEET.md            # แนวคิดหลัก
+│   ├── TECHNICAL_BLUEPRINT_TH.md   # พิมพ์เขียวทางเทคนิค
+│   └── BUSINESS_PLAN_TH.md         # แผนธุรกิจ
+│
+├── tests/                          # ระบบทดสอบ
+├── data/                           # ข้อมูล
+│   └── akashic_records.json        # บันทึกอมตะ
+│
+├── awaken.py                       # สคริปต์เริ่มระบบ
+├── requirements.txt                # Python dependencies
+└── README.md                       # คู่มือหลัก
+
+================================================================================
+5. ส่วนประกอบหลัก (Core Components)
+================================================================================
+
+5.1 Logenesis Engine
+--------------------
+ตัวแปลงเจตนาเป็นโครงสร้าง (Intent → Structure)
+
+หน้าที่:
+  • รับ Intent จากมนุษย์
+  • แปลงเป็น StateAct (สถานะ + การกระทำ)
+  • ตรวจสอบสถานะภายใน (Confusion, Confidence, Nirodha)
+  • สร้าง Visual Parameters สำหรับแสดงผล
+
+ไฟล์หลัก:
+  • src/backend/genesis_core/logenesis/engine.py
+  • src/backend/genesis_core/logenesis/embodiment.py
+  • src/backend/genesis_core/logenesis/interpreter.py
+
+5.2 AetherBus (ระบบประสาทกลาง)
+-------------------------------
+ระบบสื่อสารความเร็วสูงแบบ Real-time
+
+คุณสมบัติ:
+  • HyperSonicBus: ส่งข้อมูลผ่าน Shared Memory
+  • 20Hz Heartbeat: ส่งสัญญาณชีพจรทุก 50ms
+  • WebSocket: สื่อสารแบบ Real-time กับ Frontend
+  • Negative Latency: คาดการณ์และประมวลผลล่วงหน้า
+
+ไฟล์หลัก:
+  • src/backend/genesis_core/bus/hyper_sonic.py
+  • src/backend/genesis_core/bus/extreme.py
+  • src/backend/genesis_core/bus/kernel.py
+
+5.3 Memory Fabric (ผ้าแห่งความจำ)
+----------------------------------
+ระบบความจำแบบ Immutable และ Temporal-Provenance-Driven
+
+ประเภทความจำ:
+  • Akashic Records: บันทึกอมตะที่ไม่เปลี่ยนแปลง
+  • Episodic: ความจำเหตุการณ์
+  • Semantic: ความจำความหมาย
+  • Procedural: ความจำขั้นตอน
+  • Reflective: ความจำการไตร่ตรอง
+  • Identity: ความจำตัวตน
+
+ไฟล์หลัก:
+  • src/backend/genesis_core/memory/akashic.py
+  • src/backend/memory/fabric.py
+  • data/akashic_records.json
+
+5.4 Entropy Economy (เศรษฐกิจแห่งความไม่แน่นอน)
+------------------------------------------------
+ระบบวัดและให้รางวัลความไม่แน่นอนที่มีคุณค่า
+
+หลักการ:
+  • วัด "ความแปลกใหม่" ของการกระทำของผู้ใช้
+  • ให้คะแนน QoU (Quality of Uncertainty)
+  • สร้าง Entropy Ledger แบบ Hash-chain
+  • ใช้ในการปรับปรุง AI Model
+
+ไฟล์หลัก:
+  • src/backend/genesis_core/entropy/service.py
+  • src/backend/genesis_core/entropy/ledger.py
+  • src/backend/genesis_core/entropy/schemas.py
+
+5.5 Governance System (ระบบกำกับดูแล)
+--------------------------------------
+ระบบนโยบายและการอนุมัติแบบ Policy-as-Code
+
+ระดับความเสี่ยง:
+  • SAFE: ดำเนินการทันที
+  • MODERATE: ต้องการการตรวจสอบ
+  • CRITICAL: ต้องการการอนุมัติจากมนุษย์
+
+ไฟล์หลัก:
+  • src/backend/governance/core.py
+  • src/backend/governance/policy_engine.py
+  • src/backend/governance/risk_tiering.py
+  • src/backend/governance/approval_router.py
+
+5.6 Vessels (ภาชนะการทำงาน)
+----------------------------
+สภาพแวดล้อมที่จำกัดขอบเขตสำหรับการทำงาน
+
+ประเภท:
+  • Database Vessel: ทำงานกับฐานข้อมูล
+  • Drive Vessel: ทำงานกับไฟล์
+  • Slack Vessel: ทำงานกับ Slack
+  • Workspace Vessel: ทำงานกับ workspace
+
+ไฟล์หลัก:
+  • src/backend/vessels/base.py
+  • src/backend/vessels/database.py
+  • src/backend/vessels/drive.py
+  • src/backend/vessels/workspace.py
+
+5.7 Chromatic Vision (ระบบการมองเห็น)
+--------------------------------------
+ระบบประมวลผลภาพและสี
+
+คุณสมบัติ:
+  • ประมวลผลภาพด้วย AI (Gemini Vision)
+  • แยกสีและภูมิภาค (Region Extraction)
+  • สร้าง Chromatic Palette
+  • วิเคราะห์อารมณ์จากสี
+
+ไฟล์หลัก:
+  • src/backend/departments/design/chromatic/aetherium_vision_core.py
+  • src/backend/departments/design/chromatic/image_processor.py
+  • src/backend/departments/design/chromatic/region_extractor.py
+
+================================================================================
+6. กระบวนการทำงาน (Data Flow)
+================================================================================
+
+6.1 User Intent Flow
+---------------------
+
+1. ผู้ใช้ส่ง Intent ผ่าน WebSocket
+   ↓
+2. LogenesisEngine รับและแปลง Intent
+   ↓
+3. สร้าง IntentPacket พร้อม StateMetrics
+   ↓
+4. ส่งผ่าน AetherBus ไปยัง Agents
+   ↓
+5. ValidatorAgent ตรวจสอบความถูกต้อง
+   ↓
+6. Governance ประเมินความเสี่ยง
+   ↓
+7. (ถ้าต้องการ) รอการอนุมัติจากมนุษย์
+   ↓
+8. Vessel ดำเนินการ
+   ↓
+9. บันทึกผลลงใน Akashic Records
+   ↓
+10. Reflector วิเคราะห์และสร้าง Gem
+   ↓
+11. อัพเดท Memory Projections
+
+6.2 Visual Manifestation Flow
+------------------------------
+
+1. LogenesisEngine สร้าง VisualParameters
+   ↓
+2. FormationManager แปลงเป็น Light Actions
+   ↓
+3. ส่งผ่าน WebSocket ไปยัง Frontend
+   ↓
+4. Particle System เรนเดอร์แสงและการเคลื่อนไหว
+   ↓
+5. ผู้ใช้เห็น "ความคิด" ของ AI ผ่านแสง
+
+6.3 Entropy Collection Flow
+----------------------------
+
+1. ผู้ใช้ทำการกระทำ (พิมพ์, คลิก, พูด)
+   ↓
+2. Frontend บันทึก Micro-Metrics
+   ↓
+3. ส่ง EntropyPacket ไปยัง Backend
+   ↓
+4. EntropyService ประเมิน QoU Score
+   ↓
+5. บันทึกลง Entropy Ledger (Hash-chain)
+   ↓
+6. ใช้ในการปรับปรุง AI Model
+
+================================================================================
+7. เทคโนโลยีที่ใช้
+================================================================================
+
+7.1 Backend
+-----------
+• Python 3.13
+• FastAPI - Web framework แบบ async
+• Uvicorn - ASGI server
+• Pydantic - Data validation
+• WebSockets - Real-time communication
+
+7.2 AI/ML
+---------
+• Google Gemini API - LLM หลัก
+• PyTorch - Deep learning framework
+• Transformers - NLP models
+• Diffusers - Image generation
+• Accelerate - Distributed training
+
+7.3 Data & Storage
+------------------
+• JSON - Data storage
+• Git - Version control และ immutable ledger
+• Shared Memory - High-speed IPC
+
+7.4 Frontend
+------------
+• Progressive Web App (PWA)
+• Vanilla JavaScript
+• Canvas API - Particle rendering
+• WebSocket API - Real-time updates
+
+7.5 Communication
+-----------------
+• NATS - Message broker
+• msgpack - Binary serialization
+• orjson - Fast JSON parsing
+• httpx - Async HTTP client
+
+7.6 Security
+------------
+• PyJWT - JWT authentication
+• cryptography - Encryption
+• itsdangerous - Secure signing
+• python-dotenv - Environment variables
+
+================================================================================
+8. การใช้งานและการติดตั้ง
+================================================================================
+
+8.1 ความต้องการของระบบ
+------------------------
+• Python 3.13+
+• 8GB RAM ขึ้นไป (สำหรับ ML models)
+• GPU (แนะนำสำหรับ image processing)
+
+8.2 การติดตั้ง
+--------------
+
+1. Clone repository:
+   git clone https://github.com/Aetherium-Syndicate-Inspectra/AETHERIUM-GENESIS.git
+   cd AETHERIUM-GENESIS
+
+2. ติดตั้ง dependencies:
+   pip install -r requirements.txt
+
+3. ตั้งค่า environment variables:
+   cp .env.example .env
+   # แก้ไข .env ตามต้องการ
+
+4. เริ่มระบบ:
+   python awaken.py
+
+8.3 การเข้าถึง
+--------------
+• Product Interface: http://localhost:8000
+• Developer Dashboard: http://localhost:8000/dashboard
+• WebSocket: ws://localhost:8000/ws
+• API Docs: http://localhost:8000/docs
+
+8.4 Environment Variables
+--------------------------
+• AUTH_PROVIDER - ประเภทการยืนยันตัวตน (mock/google)
+• GOOGLE_CLIENT_ID - Google OAuth Client ID
+• GOOGLE_CLIENT_SECRET - Google OAuth Secret
+• GOOGLE_REDIRECT_URI - OAuth Redirect URI
+• SECRET_KEY - Secret key สำหรับ JWT
+
+================================================================================
+9. ระบบความปลอดภัยและ Governance
+================================================================================
+
+9.1 Authentication & Authorization
+-----------------------------------
+• รองรับ Google OAuth 2.0
+• JWT-based session management
+• Role-based access control
+
+9.2 Governance Workflow
+-----------------------
+
+SAFE Actions (ดำเนินการทันที):
+  • อ่านข้อมูล
+  • ค้นหาข้อมูล
+  • แสดงผล
+
+MODERATE Actions (ต้องการการตรวจสอบ):
+  • สร้างเอกสาร
+  • แก้ไขข้อมูล
+  • ส่งข้อความ
+
+CRITICAL Actions (ต้องการการอนุมัติ):
+  • ลบข้อมูล
+  • เปลี่ยนแปลงนโยบาย
+  • เข้าถึงข้อมูลสำคัญ
+
+9.3 Audit Trail
+---------------
+• ทุกการกระทำถูกบันทึกใน Akashic Records
+• Hash-chain เพื่อความปลอดภัย
+• Temporal provenance tracking
+• Immutable ledger
+
+================================================================================
+10. แผนพัฒนาในอนาคต
+================================================================================
+
+10.1 Phase 1: Foundation (ปัจจุบัน)
+------------------------------------
+✅ Dual-layer architecture
+✅ Logenesis Engine
+✅ AetherBus communication
+✅ Memory Fabric
+✅ Governance system
+✅ Entropy Economy
+
+10.2 Phase 2: Resonance (กำลังพัฒนา)
+-------------------------------------
+🔄 Primary Resonators (12 positions)
+🔄 Negative Latency prediction
+🔄 Ghost Workers
+🔄 Advanced visual embodiment
+
+10.3 Phase 3: Scaling
+---------------------
+📋 Multi-user support
+📋 Distributed deployment
+📋 Advanced ML models
+📋 Mobile applications
+
+10.4 Phase 4: Ecosystem
+-----------------------
+📋 Plugin system
+📋 Third-party integrations
+📋 Marketplace
+📋 Community governance
+
+================================================================================
+บทสรุป
+================================================================================
+
+AETHERIUM GENESIS เป็นมากกว่า AI Platform ธรรมดา
+
+มันคือ "โครงสร้างพื้นฐานแห่งปัญญาสังเคราะห์" ที่ออกแบบมาเพื่อ:
+
+  🎯 ให้ AI มี "ร่างกาย" และ "ระบบประสาท"
+  🧠 ให้ AI มี "ความจำ" ที่ไม่มีวันลืม
+  👁️ ให้มนุษย์เห็น "กระบวนการคิด" ของ AI ผ่านแสง
+  🤝 ให้มนุษย์และ AI ทำงานร่วมกันอย่างมีประสิทธิภาพ
+  🔒 รักษาความปลอดภัยและความโปร่งใสในทุกการกระทำ
+
+ด้วยสถาปัตยกรรมที่เป็นเอกลักษณ์ ผสมผสานระหว่างปรัชญาตะวันออก
+(Inspira-Firma, Nirodha, Resonance) กับเทคโนโลยีตะวันตก
+(FastAPI, WebSocket, ML Models) AETHERIUM GENESIS พร้อมที่จะเป็น
+พื้นฐานสำหรับ Autonomous AI Partner ในยุคต่อไป
+
+================================================================================
+ข้อมูลเพิ่มเติม
+================================================================================
+
+Repository: https://github.com/Aetherium-Syndicate-Inspectra/AETHERIUM-GENESIS
+Documentation: docs/
+License: MIT
+Version: 2.2.0-resonance
+
+© 2026 AETHERIUM GENESIS | Concept by Inspirafirma

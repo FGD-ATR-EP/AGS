@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHERIUM GATEWAY | Public</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #050505; color: #e5e5e5; font-family: 'Courier New', monospace; }
+        .neon-border { border: 1px solid #06b6d4; box-shadow: 0 0 10px #06b6d4; }
+        .glass { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="p-8">
+
+    <!-- HEADER -->
+    <div class="flex justify-between items-center mb-12">
+        <div>
+            <h1 class="text-4xl font-bold text-cyan-400 tracking-widest">AETHERIUM GENESIS</h1>
+            <p class="text-xs text-gray-500 mt-2">PROTOCOL: AETHER_BUS_EXTREME // PUBLIC_VIEW</p>
+        </div>
+        <div class="text-right">
+            <div id="status-indicator" class="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+            <span class="text-sm">SYSTEM STATUS</span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- SECTION 1: SYSTEM PULSE (Metrics) -->
+        <div class="glass p-6 rounded-lg neon-border">
+            <h2 class="text-xl text-cyan-200 mb-4 border-b border-gray-700 pb-2">SYSTEM PULSE</h2>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-black p-4 rounded text-center">
+                    <div class="text-gray-400 text-xs">THROUGHPUT</div>
+                    <div id="metric-throughput" class="text-2xl text-green-400 font-bold">0.0</div>
+                    <div class="text-gray-500 text-xs">ev/s</div>
+                </div>
+                <div class="bg-black p-4 rounded text-center">
+                    <div class="text-gray-400 text-xs">INTENTS PROCESSED</div>
+                    <div id="metric-intents" class="text-2xl text-blue-400 font-bold">0</div>
+                </div>
+            </div>
+
+            <canvas id="pulseChart" height="150"></canvas>
+            <p class="text-xs text-gray-600 mt-4 text-center">
+                * Viewing Aggregate Metrics Only. Introspection Data is Classified.
+            </p>
+        </div>
+
+        <!-- SECTION 2: IDENTITY GENERATION (.abe) -->
+        <div class="glass p-6 rounded-lg border border-gray-800">
+            <h2 class="text-xl text-yellow-200 mb-4 border-b border-gray-700 pb-2">IDENTITY CONTRACT (.abe)</h2>
+            <p class="text-sm text-gray-400 mb-4">
+                Generate a unique identity contract to request access to the Aetherium Neural Network.
+            </p>
+
+            <form id="abeForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-cyan-600 mb-1">ENTITY NAME</label>
+                    <input type="text" id="entityName" class="w-full bg-gray-900 border border-gray-700 p-2 text-white rounded focus:border-cyan-500 outline-none" placeholder="e.g. Project Orion">
+                </div>
+                <div>
+                    <label class="block text-xs text-cyan-600 mb-1">PRIMARY INTENT</label>
+                    <select id="intentType" class="w-full bg-gray-900 border border-gray-700 p-2 text-white rounded">
+                        <option value="OBSERVER">OBSERVER (Read-Only)</option>
+                        <option value="CONTRIBUTOR">CONTRIBUTOR (Read-Write)</option>
+                        <option value="HYBRID">HYBRID (Complex Logic)</option>
+                    </select>
+                </div>
+
+                <button type="button" onclick="generateContract()" class="w-full bg-cyan-900 hover:bg-cyan-700 text-cyan-100 py-2 rounded transition border border-cyan-500">
+                    GENERATE CONTRACT
+                </button>
+            </form>
+
+            <div id="contractOutput" class="hidden mt-6">
+                <p class="text-xs text-green-400 mb-2">CONTRACT GENERATED SUCCESSFULLY</p>
+                <textarea id="abeJson" readonly class="w-full h-32 bg-black text-green-500 text-xs p-2 font-mono rounded border border-green-900"></textarea>
+                <div class="mt-2 text-xs text-gray-500">
+                    Save this as <span class="text-white">identity.abe</span>. This is your permanent DNA.
+                </div>
+
+                <!-- Mock Payment Button -->
+                <button onclick="requestKey()" class="mt-4 w-full bg-yellow-900 hover:bg-yellow-700 text-yellow-100 py-2 rounded transition border border-yellow-500">
+                    REQUEST ACCESS KEY (STANDARD TIER)
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        // --- 1. METRICS STREAM ---
+        const ctx = document.getElementById('pulseChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(20).fill(''),
+                datasets: [{
+                    label: 'Pulse (Events/Sec)',
+                    data: Array(20).fill(0),
+                    borderColor: '#06b6d4',
+                    borderWidth: 1,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    fill: true,
+                    backgroundColor: 'rgba(6, 182, 212, 0.1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                animation: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#333' } },
+                    x: { display: false }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        const ws = new WebSocket(`ws://${location.host}/ws/v3/metrics`);
+
+        ws.onopen = () => {
+            document.getElementById('status-indicator').classList.remove('bg-red-500');
+            document.getElementById('status-indicator').classList.add('bg-green-500');
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === "METRICS_UPDATE") {
+                document.getElementById('metric-throughput').innerText = data.throughput;
+                document.getElementById('metric-intents').innerText = data.intents_processed;
+
+                // Update Chart
+                const newData = chart.data.datasets[0].data;
+                newData.shift();
+                newData.push(data.throughput);
+                chart.update();
+            }
+        };
+
+        // --- 2. CONTRACT GENERATION ---
+        function generateContract() {
+            const name = document.getElementById('entityName').value || "Anonymous";
+            const intent = document.getElementById('intentType').value;
+
+            const contract = {
+                "abe_version": "1.0",
+                "identity": {
+                    "issuer": "AETHERIUM_PUBLIC_GATEWAY",
+                    "abe_id": "abe-" + Math.random().toString(36).substr(2, 9),
+                    "entity_name": name,
+                    "created_at": Date.now() / 1000
+                },
+                "intent": {
+                    "primary_intent": intent,
+                    "data_sensitivity": "LOW",
+                    "expected_throughput": "LOW"
+                },
+                "capabilities": ["subscribe"],
+                "extensions": {}
+            };
+
+            document.getElementById('abeJson').value = JSON.stringify(contract, null, 2);
+            document.getElementById('contractOutput').classList.remove('hidden');
+        }
+
+        function requestKey() {
+            // Mock Request
+            alert("Request Sent. Waiting for Overseer Approval.\n(In a real scenario, this would trigger payment/approval flow)");
+        }
+    </script>
+</body>
+</html>

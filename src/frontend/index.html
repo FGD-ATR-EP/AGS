@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AETHERIUM GENESIS | Governed AI-OS</title>
+    <meta name="description" content="AETHERIUM-GENESIS is a governed AI operating layer that connects intent, reasoning, policy validation, execution, memory, and manifestation.">
+    <meta name="theme-color" content="#07111f">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/icons/icon-192.png">
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #040816;
+            --bg-elevated: rgba(10, 18, 34, 0.88);
+            --panel: rgba(14, 23, 43, 0.82);
+            --panel-strong: rgba(18, 29, 54, 0.95);
+            --line: rgba(124, 169, 255, 0.22);
+            --line-strong: rgba(124, 169, 255, 0.42);
+            --text: #f5f7ff;
+            --muted: #9eb0d2;
+            --cyan: #74f7ff;
+            --violet: #a98cff;
+            --green: #6af7b8;
+            --amber: #ffd36a;
+            --danger: #ff7e8a;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+            --max: 1200px;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(116, 247, 255, 0.16), transparent 32%),
+                radial-gradient(circle at top right, rgba(169, 140, 255, 0.18), transparent 28%),
+                linear-gradient(180deg, #07111f 0%, #040816 48%, #02050c 100%);
+        }
+
+        a { color: inherit; text-decoration: none; }
+        .shell { width: min(calc(100% - 32px), var(--max)); margin: 0 auto; }
+        .topbar {
+            position: sticky; top: 0; z-index: 5;
+            backdrop-filter: blur(16px);
+            background: rgba(4, 8, 22, 0.82);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .topbar-inner {
+            width: min(calc(100% - 32px), var(--max)); margin: 0 auto; padding: 16px 0;
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        }
+        .brand { font-size: 1rem; font-weight: 800; letter-spacing: 0.24em; text-transform: uppercase; color: var(--cyan); }
+        .nav { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+        .nav a, .cta-secondary, .cta-primary {
+            border: 1px solid var(--line); padding: 10px 14px; border-radius: 999px; transition: 180ms ease;
+        }
+        .nav a:hover, .cta-secondary:hover { border-color: var(--line-strong); background: rgba(116,247,255,0.08); }
+        .cta-primary { background: linear-gradient(135deg, rgba(116,247,255,0.16), rgba(169,140,255,0.18)); border-color: rgba(116,247,255,0.4); }
+        .hero { padding: 72px 0 56px; }
+        .hero-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 28px; align-items: stretch; }
+        .hero-card, .panel { background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 28px; box-shadow: var(--shadow); }
+        .hero-card { padding: 36px; }
+        .eyebrow { font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cyan); }
+        h1 { margin: 16px 0; font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 0.98; letter-spacing: -0.04em; }
+        .lead { margin: 0 0 24px; color: var(--muted); font-size: 1.05rem; line-height: 1.7; max-width: 68ch; }
+        .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+        .hero-actions a { font-weight: 600; }
+        .status-grid { display: grid; gap: 16px; padding: 28px; }
+        .status-block { padding: 18px; border-radius: 20px; background: var(--panel); border: 1px solid rgba(255,255,255,0.06); }
+        .status-block strong { display: block; margin-bottom: 8px; font-size: 1.05rem; }
+        .status-block span { color: var(--muted); line-height: 1.6; }
+        .section { padding: 24px 0 64px; }
+        .section h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 12px; }
+        .section p.section-copy { margin: 0 0 24px; color: var(--muted); line-height: 1.7; max-width: 72ch; }
+        .card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+        .card { padding: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 24px; }
+        .card .tag { display: inline-flex; padding: 6px 10px; border-radius: 999px; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; background: rgba(255,255,255,0.05); color: var(--cyan); }
+        .card h3 { margin: 16px 0 10px; font-size: 1.1rem; }
+        .card p, .card li { color: var(--muted); line-height: 1.65; }
+        .card ul { margin: 0; padding-left: 18px; }
+        .loop { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+        .loop-step { padding: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; min-height: 144px; }
+        .loop-step small { color: var(--amber); letter-spacing: 0.16em; text-transform: uppercase; }
+        .loop-step h3 { margin: 12px 0 8px; font-size: 1rem; }
+        .loop-step p { margin: 0; color: var(--muted); line-height: 1.55; }
+        .architecture { padding: 24px; overflow-x: auto; }
+        .architecture pre { margin: 0; white-space: pre; font-family: "SFMono-Regular", Consolas, monospace; color: #dce6ff; }
+        .footer { padding: 16px 0 48px; color: var(--muted); }
+        .footer-grid { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        @media (max-width: 1024px) {
+            .hero-grid, .card-grid, .loop { grid-template-columns: 1fr 1fr; }
+            .hero-grid { grid-template-columns: 1fr; }
+            .loop { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 720px) {
+            .topbar-inner { align-items: flex-start; flex-direction: column; }
+            .nav { justify-content: flex-start; }
+            .hero { padding-top: 44px; }
+            .hero-card, .status-grid, .architecture { padding: 22px; }
+            .card-grid, .loop { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" href="#top">AETHERIUM GENESIS</a>
+            <nav class="nav" aria-label="Primary navigation">
+                <a href="#control-loop">Control Loop</a>
+                <a href="#subsystems">Subsystems</a>
+                <a href="#entrypoints">Entrypoints</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/docs">API Docs</a>
+            </nav>
+        </div>
+    </header>
+
+    <main id="top" class="shell">
+        <section class="hero">
+            <div class="hero-grid">
+                <article class="hero-card">
+                    <div class="eyebrow">Governed AI Operating Layer</div>
+                    <h1>Intent → Reasoning → Policy Validation → Execution → Memory → Manifestation</h1>
+                    <p class="lead">
+                        AETHERIUM-GENESIS is the governed AI-OS control plane for digital systems. The platform aligns Mind, Kernel, Bus, Hands, Memory, and Body so that actions are auditable, replayable, and faithfully manifested to operators.
+                    </p>
+                    <div class="hero-actions">
+                        <a class="cta-primary" href="/dashboard">Open Operations Dashboard</a>
+                        <a class="cta-secondary" href="#entrypoints">Explore System Entrypoints</a>
+                        <a class="cta-secondary" href="/docs">Inspect API Contract</a>
+                    </div>
+                </article>
+                <aside class="hero-card status-grid" aria-label="Platform status summary">
+                    <div class="status-block">
+                        <strong>Canonical bus</strong>
+                        <span>AetherBus-Tachyon propagates envelope-first events across runtime services and manifestation surfaces.</span>
+                    </div>
+                    <div class="status-block">
+                        <strong>Governance gate</strong>
+                        <span>PRGX-AG policy evaluation and approval workflows remain in front of high-impact execution paths.</span>
+                    </div>
+                    <div class="status-block">
+                        <strong>Akashic continuity</strong>
+                        <span>Memory commits preserve correlation, replay, and auditability before user-facing state becomes canonical.</span>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <section id="control-loop" class="section">
+            <h2>Canonical Control Loop</h2>
+            <p class="section-copy">The homepage now reflects the platform-first structure of the repository instead of a standalone visual experiment. Each step below maps to a governed subsystem boundary.</p>
+            <div class="loop">
+                <article class="loop-step"><small>01</small><h3>Intent</h3><p>Human or system-originated requests enter through API and WebSocket ingress.</p></article>
+                <article class="loop-step"><small>02</small><h3>Reasoning</h3><p>Logenesis interprets the request and prepares directives or plans.</p></article>
+                <article class="loop-step"><small>03</small><h3>Policy Validation</h3><p>Governance evaluates risk tier, approval requirements, and execution constraints.</p></article>
+                <article class="loop-step"><small>04</small><h3>Execution</h3><p>Vessels and adapters act only when the approved directive contract allows it.</p></article>
+                <article class="loop-step"><small>05</small><h3>Memory Commit</h3><p>Akashic continuity stores append-only records with causal linkage and replay metadata.</p></article>
+                <article class="loop-step"><small>06</small><h3>Manifestation</h3><p>GunUI and dashboards render backend-authored state, diagnostics, and replay surfaces.</p></article>
+            </div>
+        </section>
+
+        <section id="subsystems" class="section">
+            <h2>Platform Subsystems</h2>
+            <p class="section-copy">These sections correspond to the repository’s canonical architecture model and make the homepage an operator-facing entry screen for the full system.</p>
+            <div class="card-grid">
+                <article class="card">
+                    <span class="tag">Mind</span>
+                    <h3>Reasoning + Planning</h3>
+                    <p>Logenesis interprets intent, produces plans, and shapes system directives without bypassing governance or memory commitments.</p>
+                </article>
+                <article class="card">
+                    <span class="tag">Kernel</span>
+                    <h3>Governance + Approval</h3>
+                    <p>Policy engines, risk tiering, and approval routing remain inspectable control surfaces for high-impact action paths.</p>
+                </article>
+                <article class="card">
+                    <span class="tag">Bus</span>
+                    <h3>AetherBus Transport</h3>
+                    <p>Tachyon provides canonical propagation, correlation continuity, and bridge fan-out for runtime envelopes.</p>
+                </article>
+                <article class="card">
+                    <span class="tag">Hands</span>
+                    <h3>Execution Vessels</h3>
+                    <p>Adapters connect workspace, storage, and external systems only through approved directive contracts.</p>
+                </article>
+                <article class="card">
+                    <span class="tag">Memory</span>
+                    <h3>Akashic Continuity</h3>
+                    <p>Ledger and memory fabric preserve traceability, continuity, replay joins, and future audit workflows.</p>
+                </article>
+                <article class="card">
+                    <span class="tag">Body</span>
+                    <h3>Manifestation Surfaces</h3>
+                    <p>Dashboard and GunUI surfaces present state, diagnostics, and replay outputs without inventing semantic truth.</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="entrypoints" class="section">
+            <h2>System Entrypoints</h2>
+            <p class="section-copy">Operators should be able to move from the homepage directly into the parts of the system that matter for control, observation, and testing.</p>
+            <div class="card-grid">
+                <article class="card">
+                    <span class="tag">Operate</span>
+                    <h3>Dashboard</h3>
+                    <p>Notification center, approvals, diagnostics, and system event awareness.</p>
+                    <ul>
+                        <li><a href="/dashboard">Open /dashboard</a></li>
+                        <li><a href="/governance/approvals">Review approvals API</a></li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <span class="tag">Integrate</span>
+                    <h3>API + Stream</h3>
+                    <p>Use the Aetherium session and WebSocket stream for envelope-first interaction.</p>
+                    <ul>
+                        <li><a href="/docs">Open OpenAPI docs</a></li>
+                        <li><a href="/public">Public gateway</a></li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <span class="tag">Manifest</span>
+                    <h3>GunUI Surfaces</h3>
+                    <p>Access existing render-oriented interfaces for manifestation, experimentation, and diagnostics.</p>
+                    <ul>
+                        <li><a href="/gunui/index.html">GunUI index</a></li>
+                        <li><a href="/overseer">Overseer surface</a></li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>System Architecture Diagram</h2>
+            <p class="section-copy">This lightweight diagram is aligned to the current repository structure and mirrors the same control/data flow described in the updated README.</p>
+            <div class="panel architecture" role="img" aria-label="System architecture diagram">
+<pre>Human / System Intent
+        │
+        ▼
+Ingress API / WebSocket ──► AetherEvent V3 Envelope ──► AetherBus-Tachyon
+                                                        │
+                                                        ▼
+                                             Governance Core / PRGX-AG
+                                                        │
+                         ┌──────────── approved directives ────────────┐
+                         ▼                                              ▼
+                   Execution Vessels                           Governance Decisions
+                         │                                              │
+                         └──────────────► Akashic Memory ◄──────────────┘
+                                                │
+                                                ▼
+                                  Dashboard / GunUI / Replay Surfaces</pre>
+            </div>
+        </section>
+    </main>
+
+    <footer class="shell footer">
+        <div class="footer-grid">
+            <span>Manifestation remains faithful to backend-decided state.</span>
+            <span>AETHERIUM-GENESIS • Governed AI-OS platform</span>
+        </div>
+    </footer>
+</body>
+</html>
