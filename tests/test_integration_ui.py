@@ -5,6 +5,7 @@ from src.backend.main import app
 class TestIntegrationUI(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
+        self.addCleanup(self.client.close)
 
     def test_dashboard_endpoint(self):
         response = self.client.get("/dashboard")

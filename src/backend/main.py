@@ -91,6 +91,7 @@ app.include_router(governance_router)
 
 # Global Services
 auditorium: Optional[AuditoriumService] = None
+background_tasks: list[asyncio.Task] = []
 
 # --- DEEPGRAM INTERFACE STUB ---
 class DeepgramTranscriber:
@@ -156,19 +157,26 @@ async def startup_event():
     await aether_bus.add_global_listener(metric_collector.track_event)
 
     # Start Metrics Broadcast Loop
-    asyncio.create_task(metric_collector.broadcast_loop())
+    background_tasks.clear()
+    background_tasks.append(asyncio.create_task(metric_collector.broadcast_loop(), name="metric-broadcast-loop"))
 
     # Start Auditorium Service
     auditorium = AuditoriumService(engine)
     auditorium.start()
 
     # Start Health Broadcast Bridge
-    asyncio.create_task(health_broadcast_loop())
+    background_tasks.append(asyncio.create_task(health_broadcast_loop(aether_bus), name="health-broadcast-loop"))
 
 @app.on_event("shutdown")
 async def shutdown_event():
     # Enter Nirodha
     await engine.shutdown()
+
+    for task in list(background_tasks):
+        task.cancel()
+    if background_tasks:
+        await asyncio.gather(*background_tasks, return_exceptions=True)
+        background_tasks.clear()
 
     if hasattr(app.state, "aether_bus"):
         await app.state.aether_bus.close()
@@ -189,15 +197,8 @@ async def broadcast_to_clients(message: dict):
     for ws in disconnected:
         clients.discard(ws)
 
-async def health_broadcast_loop():
-    """Reads health reports from AetherBus and broadcasts to WebSockets."""
-    bus = BusFactory.get_bus()
-
-    # Ensure connected
-    try:
-        await bus.connect()
-    except Exception as e:
-        logger.warning(f"Health Broadcast: Connect Warning: {e}")
+async def health_broadcast_loop(bus):
+    """Reads health reports from the canonical AetherBus and broadcasts to WebSockets."""
 
     logger.info("Health Broadcast Loop Started")
 
@@ -230,8 +231,12 @@ async def health_broadcast_loop():
         logger.error(f"Health Broadcast Subscribe Error: {e}")
 
     # Keep alive loop
-    while True:
-        await asyncio.sleep(3600)
+    try:
+        while True:
+            await asyncio.sleep(3600)
+    except asyncio.CancelledError:
+        logger.info("Health Broadcast Loop Cancelled")
+        raise
 
 @app.websocket("/ws/v2/stream")
 async def websocket_v2_endpoint(websocket: WebSocket):

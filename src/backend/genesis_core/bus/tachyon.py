@@ -17,6 +17,9 @@ try:
     import zmq.asyncio
 except ImportError:  # pragma: no cover - optional dependency path
     zmq = None
+    zmq_asyncio = None
+else:  # pragma: no cover - optional dependency path
+    zmq_asyncio = zmq.asyncio
 
 try:
     import websockets
@@ -43,13 +46,25 @@ class AetherBusTachyon(BaseAetherBus):
             return
         self._running = True
         if zmq is not None:
-            self._zmq_context = zmq.asyncio.Context.instance()
-            self._publisher = self._zmq_context.socket(zmq.PUB)
-            self._publisher.connect(self.config.internal_endpoint.address)
-            self._subscriber = self._zmq_context.socket(zmq.SUB)
-            self._subscriber.connect(self.config.internal_endpoint.address)
-            self._subscriber.setsockopt_string(zmq.SUBSCRIBE, "")
-            self._reader_task = asyncio.create_task(self._read_internal_loop())
+            try:
+                self._zmq_context = zmq_asyncio.Context.instance()
+                self._publisher = self._zmq_context.socket(zmq.PUB)
+                self._publisher.bind(self.config.internal_endpoint.address)
+                self._subscriber = self._zmq_context.socket(zmq.SUB)
+                self._subscriber.connect(self.config.internal_endpoint.address)
+                self._subscriber.setsockopt_string(zmq.SUBSCRIBE, "")
+                self._reader_task = asyncio.create_task(self._read_internal_loop())
+            except zmq.ZMQError as exc:
+                logger.warning(
+                    "Tachyon could not bind %s (%s); falling back to degraded in-process dispatch.",
+                    self.config.internal_endpoint.address,
+                    exc,
+                )
+                for socket_name in ("_publisher", "_subscriber"):
+                    socket = getattr(self, socket_name)
+                    if socket is not None:
+                        socket.close(0)
+                        setattr(self, socket_name, None)
         else:
             logger.warning("pyzmq is unavailable; Tachyon internal transport is running in degraded in-process mode.")
 

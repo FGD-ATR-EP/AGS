@@ -3,590 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AETHERIUM GENESIS</title>
-    <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="icons/icon-192.png">
-
+    <title>AETHERIUM GENESIS | Governed AI-OS</title>
+    <meta name="description" content="AETHERIUM-GENESIS is a governed AI operating layer that connects intent, reasoning, policy validation, execution, memory, and manifestation.">
+    <meta name="theme-color" content="#07111f">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/icons/icon-192.png">
     <style>
         :root {
-            --ag-blue: #00f0ff;
-            --ag-purple: #bd00ff;
-            --ag-glass: rgba(255, 255, 255, 0.05);
-            --ag-border: rgba(255, 255, 255, 0.1);
-            --font-main: 'Courier New', monospace;
+            color-scheme: dark;
+            --bg: #040816;
+            --bg-elevated: rgba(10, 18, 34, 0.88);
+            --panel: rgba(14, 23, 43, 0.82);
+            --panel-strong: rgba(18, 29, 54, 0.95);
+            --line: rgba(124, 169, 255, 0.22);
+            --line-strong: rgba(124, 169, 255, 0.42);
+            --text: #f5f7ff;
+            --muted: #9eb0d2;
+            --cyan: #74f7ff;
+            --violet: #a98cff;
+            --green: #6af7b8;
+            --amber: #ffd36a;
+            --danger: #ff7e8a;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+            --max: 1200px;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
             margin: 0;
-            overflow: hidden;
-            background-color: #000000;
-            font-family: var(--font-main);
-            color: white;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none; /* Prevent browser handling of gestures */
-            overscroll-behavior: none;
+            min-height: 100vh;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(116, 247, 255, 0.16), transparent 32%),
+                radial-gradient(circle at top right, rgba(169, 140, 255, 0.18), transparent 28%),
+                linear-gradient(180deg, #07111f 0%, #040816 48%, #02050c 100%);
         }
 
-        #genesis-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1;
+        a { color: inherit; text-decoration: none; }
+        .shell { width: min(calc(100% - 32px), var(--max)); margin: 0 auto; }
+        .topbar {
+            position: sticky; top: 0; z-index: 5;
+            backdrop-filter: blur(16px);
+            background: rgba(4, 8, 22, 0.82);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
-
-        /* --- INTERACTION LAYER --- */
-        #ui-layer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            pointer-events: none; /* Let touches pass to canvas if needed, but we handle buttons */
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: center;
-            padding-bottom: 50px;
+        .topbar-inner {
+            width: min(calc(100% - 32px), var(--max)); margin: 0 auto; padding: 16px 0;
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
         }
-
-        #voice-btn {
-            pointer-events: auto;
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--ag-border);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-            cursor: pointer;
-            position: relative;
+        .brand { font-size: 1rem; font-weight: 800; letter-spacing: 0.24em; text-transform: uppercase; color: var(--cyan); }
+        .nav { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+        .nav a, .cta-secondary, .cta-primary {
+            border: 1px solid var(--line); padding: 10px 14px; border-radius: 999px; transition: 180ms ease;
         }
-
-        #voice-btn::before {
-            content: '';
-            position: absolute;
-            width: 40%;
-            height: 40%;
-            background: white;
-            border-radius: 50%;
-            opacity: 0.8;
-            transition: all 0.3s ease;
+        .nav a:hover, .cta-secondary:hover { border-color: var(--line-strong); background: rgba(116,247,255,0.08); }
+        .cta-primary { background: linear-gradient(135deg, rgba(116,247,255,0.16), rgba(169,140,255,0.18)); border-color: rgba(116,247,255,0.4); }
+        .hero { padding: 72px 0 56px; }
+        .hero-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 28px; align-items: stretch; }
+        .hero-card, .panel { background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 28px; box-shadow: var(--shadow); }
+        .hero-card { padding: 36px; }
+        .eyebrow { font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cyan); }
+        h1 { margin: 16px 0; font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 0.98; letter-spacing: -0.04em; }
+        .lead { margin: 0 0 24px; color: var(--muted); font-size: 1.05rem; line-height: 1.7; max-width: 68ch; }
+        .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+        .hero-actions a { font-weight: 600; }
+        .status-grid { display: grid; gap: 16px; padding: 28px; }
+        .status-block { padding: 18px; border-radius: 20px; background: var(--panel); border: 1px solid rgba(255,255,255,0.06); }
+        .status-block strong { display: block; margin-bottom: 8px; font-size: 1.05rem; }
+        .status-block span { color: var(--muted); line-height: 1.6; }
+        .section { padding: 24px 0 64px; }
+        .section h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 12px; }
+        .section p.section-copy { margin: 0 0 24px; color: var(--muted); line-height: 1.7; max-width: 72ch; }
+        .card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+        .card { padding: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 24px; }
+        .card .tag { display: inline-flex; padding: 6px 10px; border-radius: 999px; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; background: rgba(255,255,255,0.05); color: var(--cyan); }
+        .card h3 { margin: 16px 0 10px; font-size: 1.1rem; }
+        .card p, .card li { color: var(--muted); line-height: 1.65; }
+        .card ul { margin: 0; padding-left: 18px; }
+        .loop { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+        .loop-step { padding: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; min-height: 144px; }
+        .loop-step small { color: var(--amber); letter-spacing: 0.16em; text-transform: uppercase; }
+        .loop-step h3 { margin: 12px 0 8px; font-size: 1rem; }
+        .loop-step p { margin: 0; color: var(--muted); line-height: 1.55; }
+        .architecture { padding: 24px; overflow-x: auto; }
+        .architecture pre { margin: 0; white-space: pre; font-family: "SFMono-Regular", Consolas, monospace; color: #dce6ff; }
+        .footer { padding: 16px 0 48px; color: var(--muted); }
+        .footer-grid { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        @media (max-width: 1024px) {
+            .hero-grid, .card-grid, .loop { grid-template-columns: 1fr 1fr; }
+            .hero-grid { grid-template-columns: 1fr; }
+            .loop { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
-
-        #voice-btn.active {
-            border-color: var(--ag-blue);
-            box-shadow: 0 0 40px var(--ag-blue);
-            transform: scale(1.1);
+        @media (max-width: 720px) {
+            .topbar-inner { align-items: flex-start; flex-direction: column; }
+            .nav { justify-content: flex-start; }
+            .hero { padding-top: 44px; }
+            .hero-card, .status-grid, .architecture { padding: 22px; }
+            .card-grid, .loop { grid-template-columns: 1fr; }
         }
-
-        #voice-btn.active::before {
-            background: var(--ag-blue);
-            box-shadow: 0 0 15px var(--ag-blue);
-            animation: breathe 1.5s infinite ease-in-out;
-        }
-
-        #voice-btn.processing::before {
-            background: var(--ag-purple);
-            box-shadow: 0 0 15px var(--ag-purple);
-            animation: pulse-fast 0.5s infinite;
-        }
-
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.2); opacity: 1; }
-        }
-
-        @keyframes pulse-fast {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        /* --- CONSENT MODAL --- */
-        #consent-trigger {
-            pointer-events: auto;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 40px;
-            height: 40px;
-            border: 1px solid var(--ag-blue);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            animation: spin-slow 10s linear infinite;
-            z-index: 100;
-            background: black;
-        }
-
-        #consent-trigger::after {
-            content: '!';
-            color: var(--ag-blue);
-            font-size: 14px;
-            animation: none;
-        }
-
-        @keyframes spin-slow {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        #consent-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 200;
-            justify-content: center;
-            align-items: center;
-            pointer-events: auto;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-content {
-            background: rgba(10, 15, 20, 0.95);
-            border: 1px solid var(--ag-border);
-            padding: 30px;
-            width: 80%;
-            max-width: 400px;
-            text-align: center;
-            border-radius: 4px;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
-        }
-
-        .modal-title {
-            color: var(--ag-blue);
-            font-size: 18px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .modal-text {
-            color: #ccc;
-            font-size: 12px;
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-
-        .modal-btn {
-            background: transparent;
-            border: 1px solid var(--ag-blue);
-            color: var(--ag-blue);
-            padding: 10px 20px;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            font-size: 12px;
-            letter-spacing: 1px;
-        }
-
-        .modal-btn:hover {
-            background: var(--ag-blue);
-            color: black;
-            box-shadow: 0 0 20px var(--ag-blue);
-        }
-
-        .modal-deny {
-            border-color: #555;
-            color: #777;
-            margin-left: 10px;
-        }
-        .modal-deny:hover {
-            border-color: #fff;
-            color: #fff;
-            background: transparent;
-            box-shadow: none;
-        }
-
     </style>
 </head>
 <body>
-
-    <canvas id="genesis-canvas"></canvas>
-
-    <!-- UI LAYER -->
-    <div id="ui-layer">
-        <div id="voice-btn"></div>
-    </div>
-
-    <!-- OPTIMIZATION TRIGGER (Initial State) -->
-    <div id="consent-trigger" onclick="showConsent()"></div>
-
-    <!-- CONSENT MODAL -->
-    <div id="consent-modal">
-        <div class="modal-content">
-            <div class="modal-title">System Optimization</div>
-            <div class="modal-text">
-                To ensure the highest fidelity of the Aetherium Light Field, the system requires permission to assess your device's processing capabilities (CPU/GPU Performance).<br><br>
-                <strong>No personal data is accessed or stored.</strong><br>
-                This assessment strictly evaluates hardware latency to adjust visual resolution.
-            </div>
-            <div>
-                <button class="modal-btn" onclick="processConsent(true)">Initialize</button>
-                <button class="modal-btn modal-deny" onclick="processConsent(false)">Low Res</button>
-            </div>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" href="#top">AETHERIUM GENESIS</a>
+            <nav class="nav" aria-label="Primary navigation">
+                <a href="#control-loop">Control Loop</a>
+                <a href="#subsystems">Subsystems</a>
+                <a href="#entrypoints">Entrypoints</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/docs">API Docs</a>
+            </nav>
         </div>
-    </div>
+    </header>
 
-    <script>
-        // Global State
-        const STATE = {
-            quality: 'LOW', // LOW | HIGH
-            listening: false,
-            processing: false,
-            speaking: false
-        };
+    <main id="top" class="shell">
+        <section class="hero">
+            <div class="hero-grid">
+                <article class="hero-card">
+                    <div class="eyebrow">Governed AI Operating Layer</div>
+                    <h1>Intent → Reasoning → Policy Validation → Execution → Memory → Manifestation</h1>
+                    <p class="lead">
+                        AETHERIUM-GENESIS is the governed AI-OS control plane for digital systems. The platform aligns Mind, Kernel, Bus, Hands, Memory, and Body so that actions are auditable, replayable, and faithfully manifested to operators.
+                    </p>
+                    <div class="hero-actions">
+                        <a class="cta-primary" href="/dashboard">Open Operations Dashboard</a>
+                        <a class="cta-secondary" href="#entrypoints">Explore System Entrypoints</a>
+                        <a class="cta-secondary" href="/docs">Inspect API Contract</a>
+                    </div>
+                </article>
+                <aside class="hero-card status-grid" aria-label="Platform status summary">
+                    <div class="status-block">
+                        <strong>Canonical bus</strong>
+                        <span>AetherBus-Tachyon propagates envelope-first events across runtime services and manifestation surfaces.</span>
+                    </div>
+                    <div class="status-block">
+                        <strong>Governance gate</strong>
+                        <span>PRGX-AG policy evaluation and approval workflows remain in front of high-impact execution paths.</span>
+                    </div>
+                    <div class="status-block">
+                        <strong>Akashic continuity</strong>
+                        <span>Memory commits preserve correlation, replay, and auditability before user-facing state becomes canonical.</span>
+                    </div>
+                </aside>
+            </div>
+        </section>
 
-        function showConsent() {
-            document.getElementById('consent-modal').style.display = 'flex';
-            document.getElementById('consent-trigger').style.display = 'none';
-        }
+        <section id="control-loop" class="section">
+            <h2>Canonical Control Loop</h2>
+            <p class="section-copy">The homepage now reflects the platform-first structure of the repository instead of a standalone visual experiment. Each step below maps to a governed subsystem boundary.</p>
+            <div class="loop">
+                <article class="loop-step"><small>01</small><h3>Intent</h3><p>Human or system-originated requests enter through API and WebSocket ingress.</p></article>
+                <article class="loop-step"><small>02</small><h3>Reasoning</h3><p>Logenesis interprets the request and prepares directives or plans.</p></article>
+                <article class="loop-step"><small>03</small><h3>Policy Validation</h3><p>Governance evaluates risk tier, approval requirements, and execution constraints.</p></article>
+                <article class="loop-step"><small>04</small><h3>Execution</h3><p>Vessels and adapters act only when the approved directive contract allows it.</p></article>
+                <article class="loop-step"><small>05</small><h3>Memory Commit</h3><p>Akashic continuity stores append-only records with causal linkage and replay metadata.</p></article>
+                <article class="loop-step"><small>06</small><h3>Manifestation</h3><p>GunUI and dashboards render backend-authored state, diagnostics, and replay surfaces.</p></article>
+            </div>
+        </section>
 
-        function processConsent(allowed) {
-            document.getElementById('consent-modal').style.display = 'none';
-            if (allowed) {
-                // Mock Assessment
-                const cores = navigator.hardwareConcurrency || 2;
-                // Simple heuristic: > 4 cores = HIGH
-                if (cores >= 4) {
-                    STATE.quality = 'HIGH';
-                }
-                console.log(`Hardware Assessment: ${cores} Cores. Quality: ${STATE.quality}`);
-            } else {
-                STATE.quality = 'LOW';
-            }
+        <section id="subsystems" class="section">
+            <h2>Platform Subsystems</h2>
+            <p class="section-copy">These sections correspond to the repository’s canonical architecture model and make the homepage an operator-facing entry screen for the full system.</p>
+            <div class="card-grid">
+                <article class="card">
+                    <span class="tag">Mind</span>
+                    <h3>Reasoning + Planning</h3>
+                    <p>Logenesis interprets intent, produces plans, and shapes system directives without bypassing governance or memory commitments.</p>
+                </article>
+                <article class="card">
+                    <span class="tag">Kernel</span>
+                    <h3>Governance + Approval</h3>
+                    <p>Policy engines, risk tiering, and approval routing remain inspectable control surfaces for high-impact action paths.</p>
+                </article>
+                <article class="card">
+                    <span class="tag">Bus</span>
+                    <h3>AetherBus Transport</h3>
+                    <p>Tachyon provides canonical propagation, correlation continuity, and bridge fan-out for runtime envelopes.</p>
+                </article>
+                <article class="card">
+                    <span class="tag">Hands</span>
+                    <h3>Execution Vessels</h3>
+                    <p>Adapters connect workspace, storage, and external systems only through approved directive contracts.</p>
+                </article>
+                <article class="card">
+                    <span class="tag">Memory</span>
+                    <h3>Akashic Continuity</h3>
+                    <p>Ledger and memory fabric preserve traceability, continuity, replay joins, and future audit workflows.</p>
+                </article>
+                <article class="card">
+                    <span class="tag">Body</span>
+                    <h3>Manifestation Surfaces</h3>
+                    <p>Dashboard and GunUI surfaces present state, diagnostics, and replay outputs without inventing semantic truth.</p>
+                </article>
+            </div>
+        </section>
 
-            // Initialize Systems
-            if (window.Genesis) window.Genesis.init();
-        }
+        <section id="entrypoints" class="section">
+            <h2>System Entrypoints</h2>
+            <p class="section-copy">Operators should be able to move from the homepage directly into the parts of the system that matter for control, observation, and testing.</p>
+            <div class="card-grid">
+                <article class="card">
+                    <span class="tag">Operate</span>
+                    <h3>Dashboard</h3>
+                    <p>Notification center, approvals, diagnostics, and system event awareness.</p>
+                    <ul>
+                        <li><a href="/dashboard">Open /dashboard</a></li>
+                        <li><a href="/governance/approvals">Review approvals API</a></li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <span class="tag">Integrate</span>
+                    <h3>API + Stream</h3>
+                    <p>Use the Aetherium session and WebSocket stream for envelope-first interaction.</p>
+                    <ul>
+                        <li><a href="/docs">Open OpenAPI docs</a></li>
+                        <li><a href="/public">Public gateway</a></li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <span class="tag">Manifest</span>
+                    <h3>GunUI Surfaces</h3>
+                    <p>Access existing render-oriented interfaces for manifestation, experimentation, and diagnostics.</p>
+                    <ul>
+                        <li><a href="/gunui/index.html">GunUI index</a></li>
+                        <li><a href="/overseer">Overseer surface</a></li>
+                    </ul>
+                </article>
+            </div>
+        </section>
 
-        // --- VISUAL ENGINE ---
-        class LightEngine {
-            constructor() {
-                this.canvas = document.getElementById('genesis-canvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.particles = [];
-                this.width = window.innerWidth;
-                this.height = window.innerHeight;
-                this.targets = [];
-                this.mode = 'IDLE'; // IDLE, TEXT
-                this.animationId = null;
+        <section class="section">
+            <h2>System Architecture Diagram</h2>
+            <p class="section-copy">This lightweight diagram is aligned to the current repository structure and mirrors the same control/data flow described in the updated README.</p>
+            <div class="panel architecture" role="img" aria-label="System architecture diagram">
+<pre>Human / System Intent
+        │
+        ▼
+Ingress API / WebSocket ──► AetherEvent V3 Envelope ──► AetherBus-Tachyon
+                                                        │
+                                                        ▼
+                                             Governance Core / PRGX-AG
+                                                        │
+                         ┌──────────── approved directives ────────────┐
+                         ▼                                              ▼
+                   Execution Vessels                           Governance Decisions
+                         │                                              │
+                         └──────────────► Akashic Memory ◄──────────────┘
+                                                │
+                                                ▼
+                                  Dashboard / GunUI / Replay Surfaces</pre>
+            </div>
+        </section>
+    </main>
 
-                window.addEventListener('resize', () => this.resize());
-                this.resize();
-            }
-
-            resize() {
-                this.width = window.innerWidth;
-                this.height = window.innerHeight;
-                this.canvas.width = this.width;
-                this.canvas.height = this.height;
-                if (this.particles.length === 0) this.initParticles();
-            }
-
-            initParticles() {
-                const count = STATE.quality === 'HIGH' ? 3000 : 800;
-                this.particles = [];
-                for (let i = 0; i < count; i++) {
-                    this.particles.push({
-                        x: Math.random() * this.width,
-                        y: Math.random() * this.height,
-                        vx: (Math.random() - 0.5) * 0.5,
-                        vy: (Math.random() - 0.5) * 0.5,
-                        size: Math.random() * 2 + 0.5,
-                        color: `rgba(0, 240, 255, ${Math.random() * 0.5 + 0.2})`,
-                        baseX: 0, baseY: 0 // For homing
-                    });
-                }
-            }
-
-            setText(text) {
-                if (!text) { this.mode = 'IDLE'; return; }
-                this.mode = 'TEXT';
-
-                // 1. Offscreen Canvas for Text Analysis
-                const osc = document.createElement('canvas');
-                osc.width = this.width;
-                osc.height = this.height;
-                const octx = osc.getContext('2d');
-
-                const fontSize = this.width < 600 ? 30 : 60;
-                octx.font = `bold ${fontSize}px "Courier New"`;
-                octx.fillStyle = 'white';
-                octx.textAlign = 'center';
-                octx.textBaseline = 'middle';
-
-                // Word Wrap
-                const maxW = this.width * 0.8;
-                const words = text.split(' ');
-                let line = '';
-                let lines = [];
-                for(let n = 0; n < words.length; n++) {
-                    const testLine = line + words[n] + ' ';
-                    const metrics = octx.measureText(testLine);
-                    if (metrics.width > maxW && n > 0) {
-                        lines.push(line);
-                        line = words[n] + ' ';
-                    } else {
-                        line = testLine;
-                    }
-                }
-                lines.push(line);
-
-                const lineHeight = fontSize * 1.2;
-                const startY = this.height / 2 - ((lines.length * lineHeight) / 2);
-                lines.forEach((l, i) => {
-                    octx.fillText(l, this.width / 2, startY + (i * lineHeight) + (lineHeight/2));
-                });
-
-                // 2. Scan Pixels
-                const idata = octx.getImageData(0, 0, this.width, this.height);
-                const buffer32 = new Uint32Array(idata.data.buffer);
-
-                this.targets = [];
-                const step = STATE.quality === 'HIGH' ? 4 : 6;
-
-                for (let y = 0; y < this.height; y += step) {
-                    for (let x = 0; x < this.width; x += step) {
-                        if (buffer32[y * this.width + x] & 0xff000000) {
-                            this.targets.push({x, y});
-                        }
-                    }
-                }
-                console.log(`Text targets formed: ${this.targets.length}`);
-            }
-
-            render() {
-                // Fade effect
-                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-                this.ctx.fillRect(0, 0, this.width, this.height);
-
-                const isText = this.mode === 'TEXT' && this.targets.length > 0;
-
-                this.particles.forEach((p, i) => {
-                    if (isText) {
-                        // Move to target
-                        const t = this.targets[i % this.targets.length];
-                        const dx = t.x - p.x;
-                        const dy = t.y - p.y;
-
-                        // Spring physics
-                        p.vx += dx * 0.03;
-                        p.vy += dy * 0.03;
-                        p.vx *= 0.85; // Damping
-                        p.vy *= 0.85;
-
-                        // Jitter
-                        p.x += (Math.random()-0.5) * 0.5;
-                        p.y += (Math.random()-0.5) * 0.5;
-
-                    } else {
-                        // IDLE / PULSE
-                        if (STATE.listening) {
-                            // Orbit / Fast
-                            p.vx += (Math.random() - 0.5) * 0.2;
-                            p.vy += (Math.random() - 0.5) * 0.2;
-                            // Attract to center slightly
-                            const dx = (this.width/2) - p.x;
-                            const dy = (this.height/2) - p.y;
-                            p.vx += dx * 0.0001;
-                            p.vy += dy * 0.0001;
-                        } else {
-                            // Drift
-                            // Boundary Wrap
-                            if (p.x < 0) p.x = this.width;
-                            if (p.x > this.width) p.x = 0;
-                            if (p.y < 0) p.y = this.height;
-                            if (p.y > this.height) p.y = 0;
-                        }
-
-                        // Limit Speed
-                        const speed = Math.sqrt(p.vx*p.vx + p.vy*p.vy);
-                        if (speed > 4) { p.vx *= 0.9; p.vy *= 0.9; }
-                    }
-
-                    p.x += p.vx;
-                    p.y += p.vy;
-
-                    this.ctx.fillStyle = p.color;
-                    this.ctx.beginPath();
-                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    this.ctx.fill();
-                });
-
-                this.animationId = requestAnimationFrame(() => this.render());
-            }
-
-            start() {
-                if (!this.animationId) this.render();
-            }
-        }
-
-        // --- INIT ---
-        window.Genesis = {
-            engine: null,
-            init: () => {
-                console.log("System Init");
-                window.Genesis.engine = new LightEngine();
-                window.Genesis.engine.start();
-                window.Genesis.engine.initParticles();
-
-                if (window.Interaction) window.Interaction.init();
-            }
-        }
-
-        // --- INTERACTION ---
-        class Interaction {
-            constructor() {
-                this.ws = null;
-                this.recognition = null;
-                this.synth = window.speechSynthesis;
-                this.btn = document.getElementById('voice-btn');
-                this.silenceTimer = null;
-                this.setupVoice();
-                this.setupNetwork();
-                this.setupUI();
-            }
-
-            setupUI() {
-                this.btn.addEventListener('click', () => this.toggleVoice());
-            }
-
-            setupNetwork() {
-                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                const host = window.location.host;
-                // If served from file://, default to localhost:8000
-                const wsHost = host || 'localhost:8000';
-                const url = `${protocol}//${wsHost}/ws`;
-
-                console.log(`Connecting to ${url}`);
-                this.ws = new WebSocket(url);
-                this.ws.onopen = () => console.log("NET: Connected");
-                this.ws.onmessage = (e) => this.handleMessage(JSON.parse(e.data));
-                this.ws.onclose = () => setTimeout(() => this.setupNetwork(), 2000);
-            }
-
-            handleMessage(msg) {
-                console.log("NET RX:", msg);
-
-                // 1. Speak Text & Visualize
-                if (msg.type === "AI_SPEAK" || msg.text_content) {
-                    const text = msg.text_content || msg.text;
-                    this.speak(text);
-                    if (window.Genesis.engine) {
-                        window.Genesis.engine.setText(text);
-                    }
-                }
-
-                // Handle raw text response from legacy
-                if (msg.text_content && !msg.type) {
-                     this.speak(msg.text_content);
-                     if (window.Genesis.engine) window.Genesis.engine.setText(msg.text_content);
-                }
-
-                // 2. Visuals (Fallback if not text)
-                if (msg.type === "VISUAL_PARAMS" && window.Genesis.engine) {
-                    // Update particle colors if needed
-                    const params = msg.params;
-                    if (params && params.color_palette) {
-                        // Iterate and update color (simplified)
-                        // window.Genesis.engine.particles.forEach(p => p.color = params.color_palette);
-                    }
-                }
-            }
-
-            setupVoice() {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                if (SpeechRecognition) {
-                    this.recognition = new SpeechRecognition();
-                    this.recognition.continuous = false;
-                    this.recognition.interimResults = false;
-                    this.recognition.lang = navigator.language || 'en-US';
-
-                    this.recognition.onstart = () => {
-                        STATE.listening = true;
-                        this.btn.classList.add('active');
-                        this.btn.classList.remove('processing');
-                    };
-
-                    this.recognition.onresult = (event) => {
-                        const result = event.results[event.resultIndex];
-                        if (result.isFinal) {
-                             const text = result[0].transcript;
-                             console.log("Voice:", text);
-                             this.sendInput(text);
-                        }
-                    };
-
-                    this.recognition.onend = () => {
-                        STATE.listening = false;
-                        this.btn.classList.remove('active');
-                        this.btn.classList.add('processing');
-                    };
-
-                    this.recognition.onerror = (e) => {
-                        console.error("Voice Error", e);
-                        STATE.listening = false;
-                        this.btn.classList.remove('active');
-                    };
-                } else {
-                    console.warn("Speech API not supported");
-                    // Fallback: Click to type? Or just alert.
-                }
-            }
-
-            toggleVoice() {
-                if (!this.recognition) return;
-                if (STATE.listening) {
-                    this.recognition.stop();
-                } else {
-                    try {
-                        this.recognition.start();
-                    } catch(e) { console.error(e); }
-                }
-            }
-
-            sendInput(text) {
-                if (!this.ws) return;
-                this.ws.send(JSON.stringify({
-                    type: "INTENT_RECOGNIZED",
-                    text: text
-                }));
-            }
-
-            speak(text) {
-                if (!text) return;
-                if (this.synth.speaking) this.synth.cancel();
-                const u = new SpeechSynthesisUtterance(text);
-                u.onend = () => {
-                     this.btn.classList.remove('processing');
-                     if (window.Genesis.engine) window.Genesis.engine.setText(null);
-                };
-                this.synth.speak(u);
-            }
-
-            static init() {
-                window.Interaction = new Interaction();
-            }
-        }
-    </script>
+    <footer class="shell footer">
+        <div class="footer-grid">
+            <span>Manifestation remains faithful to backend-decided state.</span>
+            <span>AETHERIUM-GENESIS • Governed AI-OS platform</span>
+        </div>
+    </footer>
 </body>
 </html>

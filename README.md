@@ -1,149 +1,118 @@
 # AETHERIUM GENESIS (AG-OS)
 ### Unified AI-OS Platform / แพลตฟอร์ม AI-OS แบบบูรณาการ
 
-![Version](https://img.shields.io/badge/version-2.2.0--resonance-blueviolet.svg)
+![Version](https://img.shields.io/badge/version-2.3.0--platform-blueviolet.svg)
 ![Status](https://img.shields.io/badge/status-ACTIVE-success.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-> AETHERIUM-GENESIS is evolving toward a governed AI operating system where intent, reasoning, governance, execution, memory, and manifestation stay structurally aligned.
+> AETHERIUM-GENESIS is a governed AI operating layer that connects human intent, AI reasoning, policy validation, execution, memory continuity, and manifestation.
 
 ---
 
-## 📖 Current State / สถานะปัจจุบัน
+## 📖 Platform Overview / ภาพรวมแพลตฟอร์ม
 
-AETHERIUM-GENESIS now documents a **Unified AI-OS** runtime posture rather than a demo-first interface project.
+AETHERIUM-GENESIS is not a demo-first interface or a thin LLM wrapper. It is an AI-OS platform designed to keep cognition, governance, execution, memory, and manifestation structurally aligned.
 
-### Canonical subsystem map
+AETHERIUM-GENESIS ไม่ใช่เดโมหน้าเว็บหรือเพียงตัวห่อหุ้ม LLM แต่เป็นแพลตฟอร์ม AI-OS ที่จัดวางการรู้คิด การกำกับดูแล การปฏิบัติการ หน่วยความจำ และการแสดงผลให้เชื่อมกันอย่างมีโครงสร้าง
 
-- **Mind — Logenesis / orchestration**: interprets intent and prepares directives.
-- **Kernel — PRGX-AG governance source**: policy evaluation, approval, and risk gating.
-- **Bus — AetherBus-Tachyon**: canonical ZeroMQ internal transport + WebSocket bridge.
-- **Hands — Vessels / adapters**: execution surfaces that must honor governance outcomes.
-- **Memory — Akashic fabric**: append-only continuity records and replay-linked ledger history.
-- **Body — UI / PWA**: manifestation surfaces that render backend-authored directives only.
+### Canonical subsystem map / แผนผังองค์ประกอบหลัก
 
-### Repository layout
+- **Mind — Logenesis**: intent interpretation, reasoning, planning.
+- **Kernel — Governance Core / PRGX-AG**: policy validation, risk controls, approval gates.
+- **Bus — AetherBus-Tachyon**: canonical transport and correlation propagation.
+- **Hands — Vessels**: execution adapters into workspaces, services, and external systems.
+- **Memory — Akashic fabric**: append-only continuity, replay joins, and ledger persistence.
+- **Body — GunUI / Dashboard / PWA**: render-only manifestation surfaces driven by backend directives.
 
-- `src/backend/` — runtime orchestration, governance hooks, bus integrations, memory, and vessels.
-- `src/frontend/` — manifestation surfaces, dashboard routes, and render-only client assets.
-- `docs/` — architecture, protocol, migration, and integration reference.
-- `tests/` — protocol, governance, bus, memory, and UI verification.
+- **Mind — Logenesis**: แปลความ intent และวางแผนการทำงาน
+- **Kernel — Governance Core / PRGX-AG**: บังคับใช้นโยบาย จัดระดับความเสี่ยง และควบคุมการอนุมัติ
+- **Bus — AetherBus-Tachyon**: โครงข่ายสื่อสารหลักพร้อมการส่งต่อ correlation
+- **Hands — Vessels**: ตัวเชื่อมสำหรับลงมือปฏิบัติในระบบภายนอก
+- **Memory — Akashic fabric**: บันทึกต่อเนื่องแบบ append-only รองรับ replay และ audit
+- **Body — GunUI / Dashboard / PWA**: ชั้นแสดงผลที่สะท้อนสถานะจาก backend เท่านั้น
 
 ---
 
-## 🧠 Unified AI-OS Architecture
-
-### Canonical control loop
+## 🧠 Canonical Control Loop / วงจรควบคุมหลัก
 
 `Intent -> Reasoning -> Policy Validation -> Execution -> Memory Commit -> Manifestation`
 
-### Runtime roles
+### Runtime guarantees / หลักประกันของระบบ
 
-| Layer | Canonical component | Responsibility |
-| --- | --- | --- |
-| System bus | **AetherBus-Tachyon** | V3 envelope transport, correlation propagation, bridge fan-out |
-| Governance kernel source | **PRGX-AG** | Policy evaluation, approval gates, risk-tiered control |
-| Memory fabric | **Akashic** | Immutable continuity records, replay joins, ledger persistence |
-| Manifestation plane | **UI / PWA** | Render backend directives, diagnostics, and replay surfaces |
+- **Envelope-first communication** via the V3 `AetherEvent` schema.
+- **Governance-first execution** for destructive or high-impact actions.
+- **Memory continuity** with causal chains and replay-ready ledger records.
+- **Render-only manifestation** so frontend surfaces never become the semantic source of truth.
 
-### System Architecture Diagram (Data + Control Flow)
+- **สื่อสารด้วย envelope เป็นหลัก** ผ่านสคีมา V3 `AetherEvent`
+- **Governance มาก่อน execution** สำหรับงานที่มีผลกระทบสูงหรือย้อนกลับไม่ได้
+- **หน่วยความจำต่อเนื่อง** ผ่าน causal chain และ ledger ที่ replay ได้
+- **Frontend เป็นเพียงชั้นแสดงผล** ไม่ใช่ผู้กำหนดความหมายของระบบ
 
-The diagram below reflects the current runtime structures in `src/backend/genesis_core/protocol/schemas.py`, `src/backend/genesis_core/entropy/schemas.py`, and `src/backend/genesis_core/entropy/ledger.py`.
+---
+
+## 🏗️ System Architecture Diagram / แผนภาพสถาปัตยกรรมระบบ
+
+The diagram below reflects the current codebase organization in `src/backend/main.py`, `src/backend/routers/aetherium.py`, `src/backend/governance/runtime.py`, `src/backend/genesis_core/entropy/ledger.py`, and the frontend manifestation routes.
+
+แผนภาพด้านล่างสะท้อนโครงสร้างจากโค้ดปัจจุบันของ `src/backend/main.py`, `src/backend/routers/aetherium.py`, `src/backend/governance/runtime.py`, `src/backend/genesis_core/entropy/ledger.py` และเส้นทางการแสดงผลฝั่ง frontend
 
 ```mermaid
 flowchart LR
     intent[Human / System Intent]
-    ingress[FastAPI / WebSocket Ingress]
-    envelope[AetherEvent V3 Envelope\ncorrelation_id / causation_id / trace_id]
-    bus[AetherBus-Tachyon\nZeroMQ internal + WebSocket bridge]
-    governance[PRGX-AG Governance Kernel\npolicy + approval + risk tiering]
-    execution[Execution Vessels / Services]
-    memory[Akashic Memory Fabric\nappend-only records + projections]
-    ui[UI Manifestation Plane\nrender-only directives]
-
-    subgraph entropy[Entropy / Ledger Structures]
-        submit[EntropySubmitRequest]
-        packet[EntropyPacket]
-        assessment[EntropyAssessment]
-        ledger[EntropyLedgerEntry\nhash_prev -> hash_self]
-    end
+    ingress[FastAPI + WebSocket Ingress]
+    envelope[AetherEvent V3 Envelope]
+    bus[AetherBus-Tachyon]
+    governance[Governance Core / PRGX-AG]
+    vessels[Execution Vessels]
+    memory[Akashic Memory + Entropy Ledger]
+    body[Dashboard / GunUI / Public Surfaces]
 
     intent --> ingress --> envelope --> bus --> governance
-    governance -->|allowed or approved directive| execution
+    governance -->|approved directives| vessels
     governance -->|decision events| memory
-    execution -->|execution_outcome| memory
-    memory -->|manifestation-ready replay/status| bus
-    bus --> ui
-
-    ingress --> submit --> packet --> assessment --> ledger
-    envelope -. correlation links .-> ledger
-    governance -. policy metadata .-> envelope
-    memory -. replay continuity .-> ui
+    vessels -->|execution outcomes| memory
+    memory -->|replay + status| bus --> body
 ```
-
-### Canonical runtime guarantees
-
-- **Envelope-first traffic**: all cross-subsystem messages use the V3 `AetherEvent` envelope.
-- **Correlation continuity**: `correlation_id`, `causation_id`, and `trace_id` are created at origin and preserved end-to-end.
-- **Governance-first execution**: no execution-capable path should bypass policy and approval rules.
-- **Memory continuity**: governed outcomes must commit to canonical memory records before they become final state.
-- **Render-only frontend**: the UI may render directives, status, diagnostics, and replay metadata, but must not invent semantic truth.
 
 ---
 
-## 🚌 Phase 1 Integration Status
+## 🗂️ Repository Layout / โครงสร้างรีโพซิทอรี
 
-Phase 1 remains focused on bus and protocol alignment.
+- `src/backend/` — runtime, governance, buses, memory, vessels, and API routes.
+- `src/frontend/` — homepage, dashboard, GunUI surfaces, and public client assets.
+- `docs/` — canonical technical specifications, audits, roadmaps, and integration references.
+- `tests/` — regression coverage for governance, protocol, UI, memory, and vessel contracts.
 
-### Current state
+- `src/backend/` — runtime, governance, bus, memory, vessels และ API routes
+- `src/frontend/` — หน้าแรก Dashboard GunUI และ static assets ฝั่ง client
+- `docs/` — เอกสารสถาปัตยกรรม สเปก การตรวจสอบ และ roadmap
+- `tests/` — ชุดทดสอบ regression สำหรับ governance, protocol, UI, memory และ vessel contracts
 
-- `BusFactory` defaults to **Tachyon** as the canonical runtime bus.
-- Internal service communication is modeled around **ZeroMQ** endpoints.
-- External consumers attach through a **WebSocket bridge**.
-- The canonical envelope is **`AetherEvent` V3**.
-- Legacy bus implementations remain available only as compatibility shims.
+---
 
-### Migration phases
+## 🚀 Run the Platform / การรันระบบ
 
-1. **Phase 1 — Canonical bus path**
-   - Tachyon adapter/client as preferred runtime path.
-   - V3 envelope enforcement.
-   - Correlation propagation across publish/subscribe and manifestation fan-out.
-   - Config-driven endpoint selection.
-2. **Phase 2 — Governance bridge expansion**
-   - Route PRGX-AG approval outcomes into canonical envelopes.
-   - Strengthen governed execution readiness contracts.
-3. **Phase 3 — Memory projections and replay tooling**
-   - Derived read models, replay console, audit/export surfaces.
-4. **Phase 4 — Full cross-repo operationalization**
-   - Contract harnesses, deployment profiles, and rollback drills across the three repositories.
+### 1. Install dependencies
 
-## 📦 Dependency Installation Strategy
-
-The repository now separates dependency roles more explicitly.
-
-### Runtime only
 ```bash
 pip install -r requirements.txt
 ```
 
-### Optional ML / visual capabilities
+Optional visual / ML extensions:
+
 ```bash
 pip install -r requirements/optional-ml-visual.txt
 ```
 
-### Development + tests
+Development and test tooling:
+
 ```bash
 pip install -r requirements/dev.txt
 ```
 
-Dependency rationale and import-graph mapping live in [`docs/dependency_inventory.md`](docs/dependency_inventory.md).
+### 2. Configure runtime
 
----
-
-## 🚀 Running the System
-
-### 1. Environment setup
 ```bash
 export PYTHONPATH=$PYTHONPATH:.
 export BUS_IMPLEMENTATION=tachyon
@@ -154,38 +123,61 @@ export BUS_COMPRESSION=none
 export BUS_TIMEOUT_MS=2000
 ```
 
-### 2. Start the application
+### 3. Start the system
 
-**Developer mode**
 ```bash
 python awaken.py
 ```
 
-**Core runtime mode**
+or
+
 ```bash
 python -m uvicorn src.backend.main:app --host 0.0.0.0 --port 8000
 ```
 
-### 3. Quick checks
+### 4. Core access points
+
+- Product homepage: `http://localhost:8000`
+- Operations dashboard: `http://localhost:8000/dashboard`
+- API docs: `http://localhost:8000/docs`
+- Public gateway: `http://localhost:8000/public`
+
+---
+
+## ✅ Recommended validation / ชุดตรวจสอบที่แนะนำ
+
 ```bash
-pytest -q tests/test_bus_factory_tachyon.py tests/test_protocol_v3_envelope.py
+pytest -q tests/test_aetherium_api.py tests/test_integration_ui.py tests/test_frontend_homepage.py
 ```
 
-Access points:
-- **Product UI**: `http://localhost:8000`
-- **Developer Dashboard**: `http://localhost:8000/dashboard`
-- **API Docs**: `http://localhost:8000/docs`
+---
+
+## 🔭 New function proposals / ข้อเสนอฟังก์ชันและแนวทางต่อยอดใหม่
+
+### English
+
+- **Replay Console**: operator timeline that reconstructs governance decisions and execution results from Akashic records.
+- **Directive Diff Inspector**: compare planned directives, approved directives, and executed outcomes side by side.
+- **Governance Policy Simulator**: sandbox interface for testing policy packs against recorded intent streams.
+- **Cross-Vessel Execution Ledger**: normalized execution timeline across workspace, storage, messaging, and external tools.
+- **Manifestation Fidelity Monitor**: checks whether frontend surfaces remain consistent with backend directive envelopes.
+
+### ภาษาไทย
+
+- **Replay Console**: หน้าจอไล่เหตุการณ์ย้อนหลังจาก Akashic records เพื่อดู intent การอนุมัติ และผลการปฏิบัติการ
+- **Directive Diff Inspector**: เปรียบเทียบแผน คำสั่งที่ได้รับอนุมัติ และผลลัพธ์จริงแบบเคียงข้างกัน
+- **Governance Policy Simulator**: โหมดจำลองสำหรับทดสอบ policy packs กับกระแส intent ที่บันทึกไว้
+- **Cross-Vessel Execution Ledger**: ไทม์ไลน์รวมการปฏิบัติการจาก workspace, storage, messaging และเครื่องมือภายนอก
+- **Manifestation Fidelity Monitor**: เครื่องมือตรวจสอบว่า frontend ยังสะท้อน directive envelopes จาก backend อย่างถูกต้อง
 
 ---
 
-## 🗺️ Core Documents
+## 📚 Core documents / เอกสารหลัก
 
-- [docs/AETHERBUS_TACHYON_INTEGRATION.md](docs/AETHERBUS_TACHYON_INTEGRATION.md) — Tachyon runtime and migration notes.
-- [docs/UNIFIED_AI_OS_INTEGRATION.md](docs/UNIFIED_AI_OS_INTEGRATION.md) — cross-repo setup, governance requirements, and memory continuity guarantees.
-- [docs/directive_envelope_standard.md](docs/directive_envelope_standard.md) — canonical V3 envelope contract.
-- [docs/dependency_inventory.md](docs/dependency_inventory.md) — dependency role separation and import-graph audit.
-- [docs/AI_OS_PLATFORM_ROADMAP_TH.md](docs/AI_OS_PLATFORM_ROADMAP_TH.md) — Thai roadmap aligned to the AI-OS platform direction.
-
----
+- [docs/CANONICAL_TECHNICAL_SPEC.md](docs/CANONICAL_TECHNICAL_SPEC.md)
+- [docs/directive_envelope_standard.md](docs/directive_envelope_standard.md)
+- [docs/UNIFIED_AI_OS_INTEGRATION.md](docs/UNIFIED_AI_OS_INTEGRATION.md)
+- [docs/AETHERBUS_TACHYON_INTEGRATION.md](docs/AETHERBUS_TACHYON_INTEGRATION.md)
+- [docs/ARCHITECTURE_AUDIT.md](docs/ARCHITECTURE_AUDIT.md)
 
 © 2026 Aetherium Syndicate Inspectra (ASI)
