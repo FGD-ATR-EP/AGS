@@ -1,21 +1,23 @@
 name: Summarize new issues
 
 on:
+  workflow_dispatch:
   issues:
     types: [opened]
+
+concurrency:
+  group: issue-summary-${{ github.workflow }}-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   summary:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       issues: write
       models: read
-      contents: read
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
       - name: Run AI inference
         id: inference
         uses: actions/ai-inference@v2
@@ -26,9 +28,12 @@ jobs:
             Body: ${{ github.event.issue.body }}
 
       - name: Comment with AI summary
-        run: |
-          gh issue comment $ISSUE_NUMBER --body '${{ steps.inference.outputs.response }}'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-          RESPONSE: ${{ steps.inference.outputs.response }}
+          ISSUE_SUMMARY: ${{ steps.inference.outputs.response }}
+        run: |
+          cat <<EOF > summary.md
+          ${ISSUE_SUMMARY}
+          EOF
+          gh issue comment "$ISSUE_NUMBER" --body-file summary.md
