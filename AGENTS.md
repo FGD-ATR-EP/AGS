@@ -405,3 +405,66 @@ Before finalizing any substantial change, verify all are true:
 - Role: Production Engineering Agent
 - Scope executed: fixed HyperSonic shared-memory attachment tracking + auditorium cleanup hooks + regression tests
 - Status: implemented low-blast-radius leak mitigation and validated targeted tests.
+
+---
+
+## Operational Quick Reference (Contributor Template Filled)
+
+### Project Overview
+
+AETHERIUM-GENESIS is a governed AI-OS platform that coordinates intent processing, policy validation, execution, memory continuity, and manifestation surfaces.
+
+Key technologies in this repository today:
+
+- Python / FastAPI runtime for backend control plane
+- Uvicorn ASGI server for local and production serving patterns
+- Pytest-based test suites for protocol, governance, API, and frontend integration checks
+- Static frontend and GunUI manifestation assets under `src/frontend/`
+
+### Setup Commands
+
+- Install base dependencies: `pip install -r requirements.txt`
+- Install optional ML/visual dependencies: `pip install -r requirements/optional-ml-visual.txt`
+- Install dev/test dependencies: `pip install -r requirements/dev.txt`
+- Start development server (entrypoint): `python awaken.py`
+- Start development server (direct ASGI): `python -m uvicorn src.backend.main:app --host 0.0.0.0 --port 8000`
+- Build for production image/artifacts: follow deployment docs in `docs/` and run the same ASGI service with production environment configuration
+
+### Development Workflow
+
+- Export runtime bus/env variables before launching backend services (see `README.md` runtime section).
+- Use Uvicorn with autoreload for iterative backend development where appropriate.
+- Keep frontend manifestation logic render-only and sourced from backend directives.
+- Keep protocol and governance changes schema-first and covered by tests.
+
+### Testing Instructions
+
+- Run targeted recommended regression checks: `pytest -q tests/test_aetherium_api.py tests/test_integration_ui.py tests/test_frontend_homepage.py`
+- Run all tests: `pytest -q`
+- Run coverage (if enabled in local environment): `pytest --cov=src --cov-report=term-missing`
+
+### Code Style
+
+- Preserve subsystem boundaries: Mind / Kernel / Bus / Hands / Memory / Body.
+- Prefer explicit schemas, typed envelopes, and canonical protocol paths.
+- Do not bypass governance checks for high-impact execution.
+- Keep frontend behavior manifestation-only; avoid semantic intent generation in UI code.
+
+### Build and Deployment
+
+- Default runtime target is ASGI application `src.backend.main:app`.
+- Local/public surfaces are served via backend routes (`/`, `/dashboard`, `/public`, `/docs`).
+- Deployment and architecture references live under `docs/` and should be treated as operational source-of-truth.
+
+### Pull Request Guidelines
+
+- Title format: `[component] Brief description`
+- Required checks (minimum): `pytest -q tests/test_aetherium_api.py tests/test_integration_ui.py tests/test_frontend_homepage.py`
+- Include summary of protocol/governance/memory impact when relevant.
+- Prefer low-blast-radius changes with explicit rollback paths.
+
+### Additional Notes
+
+- Prioritize protocol clarity, governance strength, memory continuity, and auditability over visual novelty.
+- Avoid introducing hidden coupling or duplicate protocol surfaces without migration/deprecation notes.
+- Validate that manifestation remains faithful to backend-decided state.
