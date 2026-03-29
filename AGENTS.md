@@ -412,7 +412,9 @@ Before finalizing any substantial change, verify all are true:
 
 ### Project Overview
 
-AETHERIUM-GENESIS is a governed AI-OS platform that coordinates intent processing, policy validation, execution, memory continuity, and manifestation surfaces.
+AETHERIUM-GENESIS is a governed AI-OS platform that coordinates
+intent processing, policy validation, execution, memory continuity,
+and manifestation surfaces.
 
 Key technologies in this repository today:
 
