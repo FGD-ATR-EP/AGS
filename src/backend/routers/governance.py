@@ -26,7 +26,7 @@ async def get_pending_approvals():
 
 class ApprovalDecision(BaseModel):
     request_id: str
-    decision: str  # APPROVED or REJECTED
+    decision: str  # APPROVED or REJECTED (case-insensitive)
 
 
 @router.post("/decide")
@@ -35,7 +35,8 @@ async def handle_decision(decision: ApprovalDecision):
     success = gov.handle_approval(decision.request_id, decision.decision)
     if not success:
         raise HTTPException(status_code=404, detail="Request not found")
-    return {"status": "success", "decision": decision.decision}
+    normalized_decision = decision.decision.upper()
+    return {"status": "success", "outcome": normalized_decision}
 
 
 @router.get("/gems")

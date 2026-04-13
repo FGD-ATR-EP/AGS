@@ -94,6 +94,11 @@ class GovernanceCore:
         return False
 
     def handle_approval(self, request_id: str, decision: str) -> bool:
+        """Apply an approval decision.
+
+        Returns ``False`` only when the request id does not exist.
+        A valid REJECTED decision is still a successful governance outcome.
+        """
         if request_id not in self.pending_approvals:
             return False
 
@@ -105,7 +110,7 @@ class GovernanceCore:
 
         req.status = "REJECTED"
         self._record_ledger_event("approval_decided", req, decision="REJECTED")
-        return False
+        return True
 
     def simulate_rule_promotion(self, gem: Dict[str, Any], shadow_mode: bool = True) -> Dict[str, Any]:
         promoted_rule = {
