@@ -81,7 +81,7 @@
 2. **Define one canonical websocket protocol surface** (v3 envelope-first) and place legacy sockets behind explicit deprecation toggles or adapters.
 3. **Constrain frontend to rendering/backend directive consumption** by removing client-authored semantic branching from primary UI entrypoints.
 4. **Codify governed execution pipeline** (`approval status -> vessel action eligibility -> mandatory memory commit`) as reusable backend orchestration utility.
-5. **Fix approval decision response semantics** so rejected decisions remain successful governance outcomes (not 404 errors).
+5. **Fix approval decision response semantics** so rejected decisions remain successful governance outcomes (not 404 errors). ✅ Implemented in API route + governance core.
 
 ## 5) Recommended Minimal Refactors
 
@@ -89,7 +89,7 @@
 2. In `src/backend/main.py`, retain deprecated sockets only as thin adapters translating legacy payloads into canonical `AetherEvent` envelopes; avoid duplicated logic paths.
 3. In `src/frontend/index.html`, reduce network semantic logic to rendering handlers for backend-owned directives/events (no client inference of policy/intent categories).
 4. In `src/frontend/public/gunui/edge_gunui_connector.html`, gate animation modes by backend-provided typed state packets instead of local heuristic mood synthesis.
-5. In `src/backend/genesis_core/governance/core.py` + `src/backend/routers/governance.py`, separate `not_found` from `decision_rejected` outcomes with explicit status payloads.
+5. In `src/backend/genesis_core/governance/core.py` + `src/backend/routers/governance.py`, separate `not_found` from `decision_rejected` outcomes with explicit status payloads. (Implemented.)
 
 ## Assumptions (Necessary)
 

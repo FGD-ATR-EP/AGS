@@ -2,6 +2,9 @@ import unittest
 from fastapi.testclient import TestClient
 from src.backend.main import app
 
+from src.backend.routers.governance import lifecycle
+from src.backend.genesis_core.governance.core import ApprovalRequest, ActionTier
+
 class TestIntegrationUI(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
@@ -17,6 +20,29 @@ class TestIntegrationUI(unittest.TestCase):
         response = self.client.get("/governance/approvals")
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.json(), list)
+
+    def test_governance_decide_rejected_is_successful_outcome(self):
+        request_id = "req-integration-reject"
+        lifecycle.validator.governance.pending_approvals[request_id] = ApprovalRequest(
+            request_id=request_id,
+            tier=ActionTier.TIER_2_EXTERNAL_IMPACT,
+            actor="integration-test",
+            intent_id="intent-integration-reject",
+            action_type="send_email",
+            preview_data={"recipient": "ops@example.com"},
+        )
+        try:
+            response = self.client.post("/governance/decide", json={"request_id": request_id, "decision": "rejected"})
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()["status"], "success")
+            self.assertEqual(response.json()["outcome"], "REJECTED")
+            self.assertEqual(lifecycle.validator.governance.pending_approvals[request_id].status, "REJECTED")
+        finally:
+            lifecycle.validator.governance.pending_approvals.pop(request_id, None)
+
+    def test_governance_decide_unknown_request_returns_404(self):
+        response = self.client.post("/governance/decide", json={"request_id": "req-does-not-exist", "decision": "APPROVED"})
+        self.assertEqual(response.status_code, 404)
 
     def test_governance_scenario_presets_endpoints(self):
         response = self.client.get("/governance/scenario-presets")
