@@ -40,5 +40,31 @@ class TestGovernance(unittest.TestCase):
         self.assertTrue(success)
         self.assertEqual(self.gov.pending_approvals[req_id].status, "APPROVED")
 
+    def test_approval_flow_reject_is_valid_outcome(self):
+        payload = IntentPayload(content={"action": "send_email"}, modality="json")
+        intent = SystemIntent(origin_agent="AgioSage", intent_type="EXECUTION_REQUEST", payload=payload, context=IntentContext())
+
+        self.validator.audit_gate(intent)
+        req_id = list(self.gov.pending_approvals.keys())[0]
+
+        success = self.gov.handle_approval(req_id, "rejected")
+        self.assertTrue(success)
+        self.assertEqual(self.gov.pending_approvals[req_id].status, "REJECTED")
+
+    def test_approval_flow_unknown_decision_is_rejected_without_mutation(self):
+        request = ApprovalRequest(
+            request_id="req-unknown-decision",
+            tier=ActionTier.TIER_2_EXTERNAL_IMPACT,
+            actor="test",
+            intent_id="intent-unknown-decision",
+            action_type="send_email",
+            preview_data={},
+        )
+        self.gov.pending_approvals[request.request_id] = request
+
+        success = self.gov.handle_approval(request.request_id, "APPROVE")
+        self.assertFalse(success)
+        self.assertEqual(self.gov.pending_approvals[request.request_id].status, "PENDING")
+
 if __name__ == '__main__':
     unittest.main()

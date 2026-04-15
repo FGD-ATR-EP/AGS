@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 import logging
+from enum import Enum
 
 from src.backend.genesis_core.governance.core import ApprovalRequest
 from src.backend.genesis_core.governance.scenario_presets import (
@@ -24,19 +25,34 @@ async def get_pending_approvals():
     return list(gov.pending_approvals.values())
 
 
+class ApprovalDecisionValue(str, Enum):
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+
+
 class ApprovalDecision(BaseModel):
     request_id: str
-    decision: str  # APPROVED or REJECTED (case-insensitive)
+    decision: ApprovalDecisionValue
+
+    @field_validator("decision", mode="before")
+    @classmethod
+    def normalize_decision(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            return value.upper()
+        return value
 
 
 @router.post("/decide")
 async def handle_decision(decision: ApprovalDecision):
     gov = lifecycle.validator.governance
-    success = gov.handle_approval(decision.request_id, decision.decision)
+    normalized_decision = decision.decision.value.upper()
+    success = gov.handle_approval(decision.request_id, normalized_decision)
     if not success:
         raise HTTPException(status_code=404, detail="Request not found")
-    normalized_decision = decision.decision.upper()
-    return {"status": "success", "outcome": normalized_decision}
+    canonical_outcome = gov.get_request_outcome(decision.request_id)
+    if canonical_outcome is None:
+        raise HTTPException(status_code=404, detail="Request not found")
+    return {"status": "success", "outcome": canonical_outcome}
 
 
 @router.get("/gems")

@@ -31,11 +31,14 @@ class TestIntegrationUI(unittest.TestCase):
             action_type="send_email",
             preview_data={"recipient": "ops@example.com"},
         )
-
-        response = self.client.post("/governance/decide", json={"request_id": request_id, "decision": "rejected"})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["status"], "success")
-        self.assertEqual(response.json()["outcome"], "REJECTED")
+        try:
+            response = self.client.post("/governance/decide", json={"request_id": request_id, "decision": "rejected"})
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()["status"], "success")
+            self.assertEqual(response.json()["outcome"], "REJECTED")
+            self.assertEqual(lifecycle.validator.governance.pending_approvals[request_id].status, "REJECTED")
+        finally:
+            lifecycle.validator.governance.pending_approvals.pop(request_id, None)
 
     def test_governance_decide_unknown_request_returns_404(self):
         response = self.client.post("/governance/decide", json={"request_id": "req-does-not-exist", "decision": "APPROVED"})
