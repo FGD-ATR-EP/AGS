@@ -4,7 +4,7 @@ numpy>=1.24.0
 python-multipart
 websockets
 xxhash>=3.0.0
-uvloop>=0.19.0
+uvloop>=0.22.1
 chromadb>=0.4.0
 sentence-transformers>=2.2.0
 msgpack>=1.0.0
