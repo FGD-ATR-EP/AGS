@@ -9,7 +9,7 @@ chromadb>=0.4.0
 sentence-transformers>=2.2.0
 msgpack>=1.0.0
 httpx>=0.24.0
-pydantic-settings>=2.0.0
+pydantic-settings>=2.14.0
 requests>=2.28.0
 
 -r requirements/runtime.txt
