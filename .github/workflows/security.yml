@@ -30,7 +30,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
 
   python-security-audit:
     name: Python security audit
